@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 if [ "$BASH" != "" ]; then
 	SOURCE="${BASH_SOURCE[0]}";
 else
