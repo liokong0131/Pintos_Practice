@@ -1,3 +1,4 @@
+#define USERPROG
 #include "userprog/process.h"
 #include <debug.h>
 #include <inttypes.h>
@@ -178,7 +179,7 @@ process_exec (void *f_name) {
 
 	/* And then load the binary */
 	success = load (file_name, &_if);
-
+	hex_dump (_if.rsp, _if.rsp, USER_STACK - _if.rsp, true);
 	/* If load failed, quit. */
 	palloc_free_page (file_name);
 	if (!success)
@@ -204,6 +205,7 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
+	while (1) {}
 	return -1;
 }
 
@@ -335,10 +337,18 @@ load (const char *file_name, struct intr_frame *if_) {
 		goto done;
 	process_activate (thread_current ());
 
+	//implement
+	char *token, *save_ptr;
+	char *argv[64];
+	uint64_t cnt = 0;
+	for (token = strtok_r(file_name, " ", &save_ptr); token != NULL; token = strtok_r(NULL, " ", &save_ptr)) {
+		argv[cnt++] = token;
+	}
+
 	/* Open executable file. */
-	file = filesys_open (file_name);
+	file = filesys_open (argv[0]);
 	if (file == NULL) {
-		printf ("load: %s: open failed\n", file_name);
+		printf ("load: %s: open failed\n", argv[0]);
 		goto done;
 	}
 
@@ -417,7 +427,11 @@ load (const char *file_name, struct intr_frame *if_) {
 	/* TODO: Your code goes here.
 	 * TODO: Implement argument passing (see project2/argument_passing.html). */
 
-	success = true;
+	 argument_stack(argv, cnt, &if_);
+	 success = true;
+ 
+	 //t->running_file = file;
+	 //file_deny_write(file);
 
 done:
 	/* We arrive here whether the load is successful or not. */
@@ -637,3 +651,39 @@ setup_stack (struct intr_frame *if_) {
 	return success;
 }
 #endif /* VM */
+
+//############## implement ################
+
+void 
+argument_stack(char **argv, int argc, struct intr_frame *if_) {
+	char **argv_addr[128];
+
+	for(int i = argc - 1; i >= 0; i--) {
+		int len = strlen(argv[i]) + 1;
+		if_->rsp -= len;
+		memcpy(if_->rsp, argv[i], len);
+		argv_addr[i] = if_->rsp;
+	}
+
+	while(if_->rsp % 8 != 0) {
+		if_->rsp--;
+		*(uint8_t *)if_->rsp = 0;
+	}
+
+	for(int i = argc; i >= 0; i--) {
+		if_->rsp -= 8;
+		if (i == argc) {
+			memset(if_->rsp, 0, sizeof(char **));
+		} else {
+			memset(if_->rsp, &argv_addr[i], sizeof(char **));
+		}
+	}
+
+	if_->R.rdi = argc;
+	if_->R.rsi = if_->rsp;
+
+	if_->rsp -= 8;
+	memset(if_->rsp, 0, sizeof(void *));
+}
+
+//#########################################
