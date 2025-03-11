@@ -27,6 +27,9 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+#define NICE_DEFAULT 0
+#define RECENT_CPU_DEFAULT 0
+#define LOAD_AVG_DEFAULT 0
 
 /* A kernel thread or user process.
  *
@@ -107,6 +110,19 @@ struct thread {
 	/* Owned by thread.c. */
 	struct intr_frame tf;               /* Information for switching */
 	unsigned magic;                     /* Detects stack overflow. */
+
+	/* implement */
+	int64_t wakeup_tick;
+
+	int init_priority;
+	struct lock *wait_on_lock;
+	struct list donations;
+	struct list_elem d_elem;
+
+	int nice;
+	int recent_cpu;
+	struct list_elem all_elem;
+	//file* running_file;
 };
 
 /* If false (default), use round-robin scheduler.
@@ -142,5 +158,28 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
+
+// ############# implement #############
+
+bool thread_cmp_wakeUpTick (const struct list_elem *A, 
+						const struct list_elem *B, void *aux UNUSED);
+void thread_sleep(int64_t ticks);
+void thread_wakeup(int64_t ticks);
+bool thread_cmp_priority (const struct list_elem *A, 
+						const struct list_elem *B, void *aux UNUSED);
+bool thread_cmp_donation_priority (const struct list_elem *A, 
+						const struct list_elem *B, void *aux UNUSED);
+
+void donate_priority (struct thread *t);
+//void refresh_priority (void);
+void remove_with_lock (struct lock *lock);
+
+void inc_curThread_recent_cpu(void);
+void inc_load_avg(void);
+int calculate_priority(struct thread *t);
+void update_priority(void);
+void update_recent_cpu(void);
+
+// #####################################
 
 #endif /* threads/thread.h */

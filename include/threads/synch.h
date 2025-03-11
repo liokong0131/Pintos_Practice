@@ -1,6 +1,7 @@
 #ifndef THREADS_SYNCH_H
 #define THREADS_SYNCH_H
 
+#include <debug.h>
 #include <list.h>
 #include <stdbool.h>
 
@@ -37,6 +38,10 @@ void cond_init (struct condition *);
 void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
+
+/* implement */
+bool 
+sema_cmp_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED );
 
 /* Optimization barrier.
  *

@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "compare": "c",
+        "cstdint": "c",
+        "thread.h": "c",
+        "intr-stubs.h": "c",
+        "stdint.h": "c",
+        "debug.h": "c"
+    }
+}
