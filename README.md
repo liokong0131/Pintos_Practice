@@ -7,14 +7,14 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
    https://gist.github.com/xynova/87beae35688476efb2ee290d3926f5bb
    
 ## 2. gcc-7.4.0 download
-###   1) essential package download
+####   1) essential package download
       '''
       sudo apt update
       sudo apt install -y build-essential manpages-dev flex bison \
           libgmp-dev libmpfr-dev libmpc-dev
       '''
 
-###   2) extract gcc-7.4.0.tar.gz and set prerequisites
+####   2) extract gcc-7.4.0.tar.gz and set prerequisites
       '''
       wget http://ftp.gnu.org/gnu/gcc/gcc-7.4.0/gcc-7.4.0.tar.gz
       tar -xzf gcc-7.4.0.tar.gz
@@ -23,7 +23,7 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       cd ..
       '''
 
-###   3) build
+####   3) build
       '''
       mkdir gcc-build
       cd gcc-build
@@ -33,31 +33,31 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       sudo make install
       cd ..
       '''
-###   4) clean up
+####   4) clean up
       '''
       rm -rf gcc-7.4.0 gcc-build gcc-7.4.0.tar.gz
       '''
 
 ## 3. qemu-2.5.0 download
-###   1) essential package download
+####   1) essential package download
       '''
       sudo apt update
       sudo apt install -y build-essential libglib2.0-dev libpixman-1-dev \
           zlib1g-dev libfdt-dev
       '''
-###   2) python 2 download
+####   2) python 2 download
       '''
       apt-get update
       apt-get install -y python
       '''
       
-###   3) extract qemu-2.5.0.tar.xz
+####   3) extract qemu-2.5.0.tar.xz
       '''
       wget https://download.qemu.org/qemu-2.5.0.tar.xz
       tar -xJf qemu-2.5.0.tar.xz
       '''
       
-###   4) build
+####   4) build
       '''
       mkdir qemu-build
       cd qemu-build
@@ -67,7 +67,7 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       cd ..
       '''
       
-###   5) clean up
+####   5) clean up
       '''
       rm -rf qemu-2.5.0 qemu-build qemu-2.5.0.tar.xz
       '''
