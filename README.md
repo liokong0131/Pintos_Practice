@@ -37,7 +37,14 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 
       rm -rf gcc-7.4.0 gcc-build gcc-7.4.0.tar.gz
 
+####   5) change gcc to 7.4.0
 
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/local/gcc-7.4.0/bin/gcc 100
+      sudo update-alternatives --install /usr/bin/g++ g++ /usr/local/gcc-7.4.0/bin/g++ 100
+      sudo update-alternatives --config gcc
+      sudo update-alternatives --config g++   
+
+      
 ## 3. qemu-2.5.0 download
 ####   1) essential package download
 
