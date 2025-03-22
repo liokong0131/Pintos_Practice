@@ -8,27 +8,27 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 
 ### 2. clone pintos repository
 
-   '
+   '''
    
    git clone https://github.com/casys-kaist/pintos-kaist
    
-   '
+   '''
    
    
 ### 3. executing install.sh
 
-   '
+   '''
    
    cd pintos-kaist
    source ./install.sh
    
-   '
+   '''
    
 ### 4. add activate to .bashrc
 
-   '
+   '''
    
    echo "source /pintos-kaist/activate" >> ~/.bashrc
    source ~/.bashrc
    
-   '
+   '''
