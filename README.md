@@ -33,16 +33,20 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       sudo make install && \
       cd ..
 
-####   4) clean up
-
-      rm -rf gcc-7.4.0 gcc-build gcc-7.4.0.tar.gz
-
-####   5) change gcc to 7.4.0
+####   4) change gcc to 7.4.0
 
       sudo update-alternatives --install /usr/bin/gcc gcc /usr/local/gcc-7.4.0/bin/gcc 100 && \
       sudo update-alternatives --install /usr/bin/g++ g++ /usr/local/gcc-7.4.0/bin/g++ 100 && \
       sudo update-alternatives --config gcc && \
       sudo update-alternatives --config g++   
+
+####   5) check gcc
+
+      gcc --version
+
+####   6) clean up
+
+      rm -rf gcc-7.4.0 gcc-build gcc-7.4.0.tar.gz
 
       
 ## 3. qemu-2.5.0 download
@@ -73,9 +77,15 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       sudo make install && \
       cd ..
 
-      
-####   5) clean up
+####   5) add qemu-2.5.0 to PATH
+
+      echo 'export PATH=/usr/local/qemu-2.5.0/bin:$PATH' >> ~/.bashrc && \
+      source ~/.bashrc
+
+####   6) check qemu
+
+      qemu-system-i386 --version
+
+####   7) clean up
 
       rm -rf qemu-2.5.0 qemu-build qemu-2.5.0.tar.xz
-
-      
