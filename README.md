@@ -54,8 +54,8 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 
 ####   2) python 2 download
 
-      apt-get update
-      apt-get install -y python
+      sudo apt-get update
+      sudo apt-get install -y python
 
       
 ####   3) extract qemu-2.5.0.tar.xz
