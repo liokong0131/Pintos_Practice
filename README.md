@@ -68,7 +68,7 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 
       
 ####   5) clean up
-      '''
+
       rm -rf qemu-2.5.0 qemu-build qemu-2.5.0.tar.xz
-      '''
+
       
