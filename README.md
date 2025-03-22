@@ -21,10 +21,10 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       cd gcc-7.4.0
       ./contrib/download_prerequisites
       cd ..
-      '''
+
 
 ####   3) build
-      '''
+
       mkdir gcc-build
       cd gcc-build
       ../gcc-7.4.0/configure --prefix=/usr/local/gcc-7.4.0 \
@@ -32,40 +32,40 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       make -j$(nproc)
       sudo make install
       cd ..
-      '''
+
 ####   4) clean up
-      '''
+
       rm -rf gcc-7.4.0 gcc-build gcc-7.4.0.tar.gz
-      '''
+
 
 ## 3. qemu-2.5.0 download
 ####   1) essential package download
-      '''
+
       sudo apt update
       sudo apt install -y build-essential libglib2.0-dev libpixman-1-dev \
           zlib1g-dev libfdt-dev
-      '''
+
 ####   2) python 2 download
-      '''
+
       apt-get update
       apt-get install -y python
-      '''
+
       
 ####   3) extract qemu-2.5.0.tar.xz
-      '''
+
       wget https://download.qemu.org/qemu-2.5.0.tar.xz
       tar -xJf qemu-2.5.0.tar.xz
-      '''
+
       
 ####   4) build
-      '''
+
       mkdir qemu-build
       cd qemu-build
       ../qemu-2.5.0/configure --prefix=/usr/local/qemu-2.5.0 --target-list=i386-softmmu
       make -j$(nproc)
       sudo make install
       cd ..
-      '''
+
       
 ####   5) clean up
       '''
