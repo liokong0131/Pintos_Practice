@@ -15,7 +15,7 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
       '''
 
 ####   2) extract gcc-7.4.0.tar.gz and set prerequisites
-      '''
+      
       wget http://ftp.gnu.org/gnu/gcc/gcc-7.4.0/gcc-7.4.0.tar.gz
       tar -xzf gcc-7.4.0.tar.gz
       cd gcc-7.4.0
