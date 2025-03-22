@@ -9,28 +9,28 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 ## 2. gcc-7.4.0 download
 ####   1) essential package download
       
-      sudo apt update
+      sudo apt update && \
       sudo apt install -y build-essential manpages-dev flex bison \
           libgmp-dev libmpfr-dev libmpc-dev
       
 
 ####   2) extract gcc-7.4.0.tar.gz and set prerequisites
       
-      wget http://ftp.gnu.org/gnu/gcc/gcc-7.4.0/gcc-7.4.0.tar.gz
-      tar -xzf gcc-7.4.0.tar.gz
-      cd gcc-7.4.0
-      ./contrib/download_prerequisites
+      wget http://ftp.gnu.org/gnu/gcc/gcc-7.4.0/gcc-7.4.0.tar.gz && \
+      tar -xzf gcc-7.4.0.tar.gz && \
+      cd gcc-7.4.0 && \
+      ./contrib/download_prerequisites && \
       cd ..
 
 
 ####   3) build
 
-      mkdir gcc-build
-      cd gcc-build
+      mkdir gcc-build && \
+      cd gcc-build && \
       ../gcc-7.4.0/configure --prefix=/usr/local/gcc-7.4.0 \
-          --enable-languages=c,c++ --disable-multilib
-      make -j$(nproc)
-      sudo make install
+          --enable-languages=c,c++ --disable-multilib && \
+      make -j$(nproc) && \
+      sudo make install && \
       cd ..
 
 ####   4) clean up
@@ -39,38 +39,38 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 
 ####   5) change gcc to 7.4.0
 
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/local/gcc-7.4.0/bin/gcc 100
-      sudo update-alternatives --install /usr/bin/g++ g++ /usr/local/gcc-7.4.0/bin/g++ 100
-      sudo update-alternatives --config gcc
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/local/gcc-7.4.0/bin/gcc 100 && \
+      sudo update-alternatives --install /usr/bin/g++ g++ /usr/local/gcc-7.4.0/bin/g++ 100 && \
+      sudo update-alternatives --config gcc && \
       sudo update-alternatives --config g++   
 
       
 ## 3. qemu-2.5.0 download
 ####   1) essential package download
 
-      sudo apt update
+      sudo apt update && \
       sudo apt install -y build-essential libglib2.0-dev libpixman-1-dev \
           zlib1g-dev libfdt-dev
 
 ####   2) python 2 download
 
-      sudo apt-get update
+      sudo apt-get update && \
       sudo apt-get install -y python
 
       
 ####   3) extract qemu-2.5.0.tar.xz
 
-      wget https://download.qemu.org/qemu-2.5.0.tar.xz
+      wget https://download.qemu.org/qemu-2.5.0.tar.xz && \
       tar -xJf qemu-2.5.0.tar.xz
 
       
 ####   4) build
 
-      mkdir qemu-build
-      cd qemu-build
-      ../qemu-2.5.0/configure --prefix=/usr/local/qemu-2.5.0 --target-list=i386-softmmu
-      make -j$(nproc)
-      sudo make install
+      mkdir qemu-build && \
+      cd qemu-build && \
+      ../qemu-2.5.0/configure --prefix=/usr/local/qemu-2.5.0 --target-list=i386-softmmu && \
+      make -j$(nproc) && \
+      sudo make install && \
       cd ..
 
       
