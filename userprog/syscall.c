@@ -1,3 +1,5 @@
+//#define DEBUG
+#define USERPROG
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
@@ -6,29 +8,42 @@
 #include "threads/loader.h"
 #include "userprog/gdt.h"
 #include "threads/flags.h"
+#include "threads/palloc.h"
 #include "intrinsic.h"
+#include "userprog/process.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
+
+enum syscall_status {
+	READ,
+	WRITE,     
+	OTHERS
+};
+
+typedef int pid_t;
+
+void check_valid_uaddr(const uint64_t *addr);
+bool is_valid_fd(int fd, enum syscall_status stat);
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
 
-//################ implement ###################
+void halt (void);
+void exit (int status);
+pid_t fork (const char *thread_name, struct intr_frame *if_);
+int exec (const char *cmd_line);
+int wait (pid_t pid);
 
-// void syscall_halt (void);
-// void syscall_exit (int status);
-// int syscall_exec (const char *cmd_line);
-// bool syscall_create (const char *file, unsigned initial_size);
-// bool syscall_remove (const char *file);
-// tid_t syscall_fork (struct intr_frame *f);
-// void syscall_seek (int fd, unsigned position);
-// unsigned syscall_tell (int fd);
-// int syscall_filesize (int fd);
-// int syscall_wait (tid_t tid);
-// int syscall_open (const char *file);
-// int syscall_read (int fd, void *buffer, unsigned size);
-// int syscall_write (int fd, const void *buffer, unsigned size);
-
-//##############################################
-
+bool create (const char *file, unsigned initial_size);
+bool remove (const char *file);
+int open (const char *file);
+int filesize (int fd);
+int read (int fd, void *buffer, unsigned length);
+int write (int fd, const void *buffer, unsigned length);
+void seek (int fd, unsigned position);
+unsigned tell (int fd);
+void close (int fd);
+int dup2(int oldfd, int newfd);
 
 /* System call.
  *
@@ -58,156 +73,236 @@ syscall_init (void) {
 
 /* The main system call interface */
 void
-syscall_handler (struct intr_frame *f UNUSED) {
-	// uint64_t syscall_num = f->R.rax;
-	// switch (syscall_num) {
-	// 	case SYS_HALT:
-	// 		syscall_halt ();
-	// 		break;
-	// 	case SYS_EXIT:
-	// 		syscall_exit (f->R.rdi);
-	// 		break;
-	// 	case SYS_FORK:
-	// 		f->R.rax = syscall_fork (f);
-	// 		break;
-	// 	case SYS_EXEC:
-	// 		f->R.rax = syscall_exec (f->R.rdi);
-	// 		break;
-	// 	case SYS_WAIT:
-	// 		f->R.rax = syscall_wait (f->R.rdi);
-	// 		break;
-	// 	case SYS_CREATE:
-	// 		f->R.rax = syscall_create (f->R.rdi, f->R.rsi);
-	// 		break;
-	// 	case SYS_REMOVE:
-	// 		f->R.rax = syscall_remove (f->R.rdi);
-	// 		break;
-	// 	case SYS_OPEN:
-	// 		f->R.rax = syscall_open (f->R.rdi);
-	// 		break;
-	// 	case SYS_FILESIZE:
-	// 		f->R.rax = syscall_filesize (f->R.rdi);
-	// 		break;
-	// 	case SYS_READ:
-	// 		f->R.rax = syscall_read (f->R.rdi, f->R.rsi, f->R.rdx);
-	// 		break;
-	// 	case SYS_WRITE:
-	// 		f->R.rax = syscall_write (f->R.rdi, f->R.rsi, f->R.rdx);
-	// 		break;
-	// 	case SYS_SEEK:
-	// 		syscall_seek (f->R.rdi, f->R.rsi);
-	// 		break;
-	// 	case SYS_TELL:
-	// 		f->R.rax = syscall_tell (f->R.rdi);
-	// 		break;
-	// 	case SYS_CLOSE:
-	// 		syscall_close (f->R.rdi);
-	// 		break;
-	// 	default:
-	// 		thread_exit ();
-	// }
+syscall_handler (struct intr_frame *if_ UNUSED) {
+	// TODO: Your implementation goes here.
+	// printf ("system call!\n");
+	// thread_exit ();
+	/*
+	register uint64_t *num asm ("rax") = (uint64_t *) num_;
+	register uint64_t *a1 asm ("rdi") = (uint64_t *) a1_;
+	register uint64_t *a2 asm ("rsi") = (uint64_t *) a2_;
+	register uint64_t *a3 asm ("rdx") = (uint64_t *) a3_;
+	register uint64_t *a4 asm ("r10") = (uint64_t *) a4_;
+	register uint64_t *a5 asm ("r8") = (uint64_t *) a5_;
+	register uint64_t *a6 asm ("r9") = (uint64_t *) a6_;
+	*/
+	char *fn_copy;
+	int size;
+	
+	switch (if_->R.rax) {
+	case SYS_HALT:
+		halt(); break;
+	case SYS_EXIT:
+		exit(if_->R.rdi); break;
+	case SYS_FORK:
+		if_->R.rax = fork(if_->R.rdi, if_);
+		break;
+	case SYS_EXEC:
+		if (exec(if_->R.rdi) == -1)
+			exit(-1);
+		break;
+	case SYS_WAIT:
+		if_->R.rax = process_wait(if_->R.rdi);
+		break;
+	case SYS_CREATE:
+		if_->R.rax = create(if_->R.rdi, if_->R.rsi);
+		break;
+	case SYS_REMOVE:
+		if_->R.rax = remove(if_->R.rdi);
+		break;
+	case SYS_OPEN:
+		if_->R.rax = open(if_->R.rdi);
+		break;
+	case SYS_FILESIZE:
+		if_->R.rax = filesize(if_->R.rdi);
+		break;
+	case SYS_READ:
+		if_->R.rax = read(if_->R.rdi, if_->R.rsi, if_->R.rdx);
+		break;
+	case SYS_WRITE:
+		if_->R.rax = write(if_->R.rdi, if_->R.rsi, if_->R.rdx);
+		break;
+	case SYS_SEEK:
+		seek(if_->R.rdi, if_->R.rsi); break;
+	case SYS_TELL:
+		if_->R.rax = tell(if_->R.rdi);
+		break;
+	case SYS_CLOSE:
+		close(if_->R.rdi); break;
+	case SYS_DUP2:
+		if_->R.rax = dup2(if_->R.rdi, if_->R.rsi);
+		break;
+	default:
+		exit(-1); break;
+	}
+}
+
+void halt (void){
+	power_off();
+}
+void exit (int status){
+	thread_current()->exit_status = status;
+	thread_exit();
+	//process_exit();
+	// if(status == 0) printf("success");
+	// else printf("error");
+}
+pid_t fork (const char *thread_name, struct intr_frame *if_){
+	//check_valid_uaddr(thread_name);
+	//check_valid_uaddr(if_);
+	return process_fork(thread_name, if_);
+}
+int exec (const char *cmd_line){
+	check_valid_uaddr(cmd_line);
+
+	char *fn_copy;
+	if((fn_copy = palloc_get_page(0)) == NULL)
+		exit(-1);
+
+	strlcpy(fn_copy, cmd_line, PGSIZE);
+
+	return process_exec(fn_copy);
+}
+int wait (pid_t pid){
+	return process_wait(pid);
+}
+
+bool create (const char *file, unsigned initial_size){
+	check_valid_uaddr(file);
+	return filesys_create(file, initial_size);
+}
+bool remove (const char *file){
+	check_valid_uaddr(file);
+	return filesys_remove(file);
+}
+int open (const char *file){
+	check_valid_uaddr(file);
+	int fd;
+	struct file *open_file;
+	if((open_file = filesys_open(file)) == NULL)
+		return -1;
+
+	if ((fd = insert_file_to_fdt(open_file)) == -1)
+		file_close(open_file);
+
+	//file_deny_write(open_file);
+#ifdef DEBUG
+	//printf("(open) fd: %d\n", fd);
+#endif
+
+	return fd;
+}
+int filesize (int fd){
+	struct thread *curThread = thread_current ();
+	if(!is_valid_fd (fd, OTHERS)) return -1;
+
+	struct file *file = curThread->fdt[fd];
+	return file_length (file);
+}
+int read (int fd, void *buffer, unsigned length){
+
+#ifdef DEBUG
+	//printf("\n\n(read) fd: %d\n\n", fd);
+#endif
+	check_valid_uaddr(buffer);
+	if(!is_valid_fd (fd, READ)) return -1;
+	struct thread *curThread = thread_current ();
+	if(fd == 0){
+		return input_getc();
+	} else{
+		struct file *file = curThread->fdt[fd];
+		file_deny_write(file);
+		return file_read(file, buffer, length);
+	}
+}
+int write (int fd, const void *buffer, unsigned length){
+
+#ifdef DEBUG
+	printf("\n(write) fd, buffer : %d, %s\n", fd, buffer);
+#endif
+
+	check_valid_uaddr(buffer);
+
+#ifdef DEBUG
+	//printf("\n(write) after check uaddr\n");
+#endif
+
+	if(!is_valid_fd (fd, WRITE)) return -1;
+
+	struct thread *curThread = thread_current ();
+
+
+
+	if(fd == 1){
+		putbuf(buffer, length);
+		return length;
+	}else{
+		struct file *file = curThread->fdt[fd];
+		//file_allow_write(file);
+#ifdef DEBUG
+		//printf("\n(write) writable : %d\n", file->deny_write);
+#endif
+
+		return file_write(file, buffer, length);
+	}
+}
+void seek (int fd, unsigned position){
+	struct thread *curThread = thread_current ();
+	if(!is_valid_fd (fd, OTHERS)) return;
+	struct file *file = curThread->fdt[fd];
+	file_seek(file, position);
+	if (position == 0) file_allow_write(file);
+}	
+unsigned tell (int fd){
+	struct thread *curThread = thread_current ();
+	if(!is_valid_fd (fd, OTHERS)) return;
+	struct file *file = curThread->fdt[fd];
+	return file_tell(file);
+}
+void close (int fd){
+	struct thread *curThread = thread_current ();
+	if(!is_valid_fd (fd, OTHERS)) return;
+	struct file *file = curThread->fdt[fd];
+	file_close(file);
+
+	curThread->fdt[fd] = NULL;
+	curThread->fdt_cur = fd;
+	curThread->num_files--;
+}
+
+int dup2(int oldfd, int newfd){
 	return;
 }
 
-//############## implement ################
+int insert_file_to_fdt(struct file *file){
+	struct thread *curThread = thread_current ();
 
-// void
-// syscall_halt (void) {
-// 	power_off ();
-// }
+#ifdef DEBUG
+	//printf("(iff) fdt_size & name: %d, %s\n", curThread->fdt_cur, curThread->name);
+#endif
 
-// void
-// syscall_exit (int status) {
-// 	struct thread *t = thread_current ();
-// 	t->status = status;
-// 	printf ("%s: exit(%d)\n", t->name, status);
-// 	thread_exit ();
-// }
+	while(curThread->fdt_cur < FDT_LIMIT && curThread->fdt[curThread->fdt_cur] != NULL){
+		curThread->fdt_cur++;
+	}
 
-// int
-// syscall_exec (const char *cmd_line) {
-// 	return process_execute (cmd_line);
-// }
+	if(curThread->fdt_cur >= FDT_LIMIT){
+		return -1;
+	}
 
-// bool
-// syscall_create (const char *file, unsigned initial_size) {
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return filesys_create (file, initial_size);
-// }
+	curThread->fdt[curThread->fdt_cur] = file;
+	curThread->num_files++;
+  	return curThread->fdt_cur;
+}
+void check_valid_uaddr(const uint64_t *addr){
+	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
+    	exit(-1);
+}
 
-// bool
-// syscall_remove (const char *file) {
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return filesys_remove (file);
-// }
-
-// tid_t
-// syscall_fork (struct intr_frame *f) {
-// 	return process_fork (f);
-// }
-
-// void
-// syscall_seek (int fd, unsigned position) {
-// 	struct file *file = process_get_file (fd);
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	file_seek (file, position);
-// }
-
-// unsigned
-// syscall_tell (int fd) {
-// 	struct file *file = process_get_file (fd);
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return file_tell (file);
-// }
-
-// int
-// syscall_filesize (int fd) {
-// 	struct file *file = process_get_file (fd);
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return file_length (file);
-// }
-
-// int
-// syscall_wait (tid_t tid) {
-// 	return process_wait (tid);
-// }
-
-// int
-// syscall_open (const char *file) {
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	struct file *f = filesys_open (file);
-// 	if (f == NULL)
-// 		return -1;
-// 	return process_add_file (f);
-// }
-
-// int
-// syscall_read (int fd, void *buffer, unsigned size) {
-// 	if (fd == 0) {
-// 		input_getc ();
-// 		return 1;
-// 	}
-// 	struct file *file = process_get_file (fd);
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return file_read (file, buffer, size);
-// }
-
-// int
-// syscall_write (int fd, const void *buffer, unsigned size) {
-// 	if (fd == 1) {
-// 		putbuf (buffer, size);
-// 		return size;
-// 	}
-// 	struct file *file = process_get_file (fd);
-// 	if (file == NULL)
-// 		syscall_exit (-1);
-// 	return file_write (file, buffer, size);
-// }
-//#########################################
+bool is_valid_fd(int fd, enum syscall_status stat){
+	struct thread *curThread = thread_current ();
+	if(2 <= fd && fd <= FDT_LIMIT && curThread->fdt[fd] != NULL)
+		return true;
+	else if (stat == WRITE && fd == 1) return true;
+	else if (stat == READ && fd == 0 ) return true;
+	else return false;
+}
