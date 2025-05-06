@@ -5,6 +5,18 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/interrupt.h"
+
+#ifdef USERPROG
+#include "threads/synch.h"
+#include "filesys/file.h"
+
+// struct fdt_info {
+// 	struct file **fdt;
+// 	int size;
+// };
+
+#endif
+
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -27,9 +39,6 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
-#define NICE_DEFAULT 0
-#define RECENT_CPU_DEFAULT 0
-#define LOAD_AVG_DEFAULT 0
 
 /* A kernel thread or user process.
  *
@@ -101,6 +110,21 @@ struct thread {
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */
+	
+	// implement for system call
+	// struct thread *parent;
+	struct semaphore fork_sema;
+	struct semaphore wait_sema;
+	struct semaphore exit_sema;
+	struct list_elem child_elem;
+	struct list child_list;
+	int exit_status;
+	struct file **fdt;
+	int fdt_cur;
+	int num_files;
+	bool is_process;
+	struct intr_frame parent_if;
+	struct file *running_file;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -111,18 +135,19 @@ struct thread {
 	struct intr_frame tf;               /* Information for switching */
 	unsigned magic;                     /* Detects stack overflow. */
 
-	/* implement */
-	int64_t wakeup_tick;
+	// implement for alarm clock
+	int64_t wake_up_tick;               /* Wake up tick for alarm clock */
 
-	int init_priority;
-	struct lock *wait_on_lock;
-	struct list donations;
-	struct list_elem d_elem;
+	// implement for priority donation
+	int original_priority;              /* Original priority */
+	struct lock *waiting_lock;          /* Lock that the thread is waiting for */
+	struct list donations;              /* List of donations */
+	struct list_elem d_elem;     /* List element for donation list */
 
+	// implement for mlfqs scheduling
+	int recent_cpu_time;
 	int nice;
-	int recent_cpu;
 	struct list_elem all_elem;
-	//file* running_file;
 };
 
 /* If false (default), use round-robin scheduler.
@@ -159,27 +184,37 @@ int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
 
-// ############# implement #############
+// implement for multilevel queue
+bool list_empty_readyList(void);
+size_t list_size_readyList(void);
+struct list_elem *list_pop_front_readyList(void);
+struct list_elem *list_begin_readyList(void);
 
-bool thread_cmp_wakeUpTick (const struct list_elem *A, 
-						const struct list_elem *B, void *aux UNUSED);
-void thread_sleep(int64_t ticks);
-void thread_wakeup(int64_t ticks);
-bool thread_cmp_priority (const struct list_elem *A, 
-						const struct list_elem *B, void *aux UNUSED);
-bool thread_cmp_donation_priority (const struct list_elem *A, 
-						const struct list_elem *B, void *aux UNUSED);
+//implement
+bool is_priority_of_curThread_highest (void);
 
-void donate_priority (struct thread *t);
-//void refresh_priority (void);
-void remove_with_lock (struct lock *lock);
+// implement for alarm clock
+bool compare_wake_up_tick(const struct list_elem *, const struct list_elem *, void *aux);
+void thread_sleep (struct thread *, int64_t ticks);
+void thread_wake_up (int64_t ticks);
 
-void inc_curThread_recent_cpu(void);
-void inc_load_avg(void);
+// implement for priority scheduling
+bool compare_priority(const struct list_elem *, const struct list_elem *, void *aux);
+
+// implement for priority donations
+bool compare_priority_in_donations(const struct list_elem *, const struct list_elem *, void *aux);
+void donate_priority(struct thread *);
+void reset_priority(void);
+void reset_donations(struct lock *);
+
+// implement for mlfqs schedulling
+void increase_recent_cpu_time(void);
+void update_load_avg(void);
 int calculate_priority(struct thread *t);
 void update_priority(void);
-void update_recent_cpu(void);
+void update_recent_cpu_time(void);
 
-// #####################################
+// implement for user process
+struct thread *get_thread(tid_t tid);
 
 #endif /* threads/thread.h */

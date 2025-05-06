@@ -1,9 +1,9 @@
 #ifndef THREADS_SYNCH_H
 #define THREADS_SYNCH_H
 
-#include <debug.h>
 #include <list.h>
 #include <stdbool.h>
+#include <debug.h> //implement for cond preemtion
 
 /* A counting semaphore. */
 struct semaphore {
@@ -39,9 +39,8 @@ void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
 
-/* implement */
-bool 
-sema_cmp_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED );
+//implement for cond preemt
+bool compare_priority_in_waiters (const struct list_elem *, const struct list_elem *, void *aux UNUSED);
 
 /* Optimization barrier.
  *
@@ -51,3 +50,4 @@ sema_cmp_priority (const struct list_elem *l, const struct list_elem *s, void *a
 #define barrier() asm volatile ("" : : : "memory")
 
 #endif /* threads/synch.h */
+
