@@ -6,6 +6,9 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
 ### 1. Ubuntu 16.04 LTS download
    https://gist.github.com/xynova/87beae35688476efb2ee290d3926f5bb
 
+### 1-1. vscode download
+   https://update.code.visualstudio.com/1.85.2/win32-x64-user/stable
+
 ### 2. clone pintos repository
    
    git clone https://github.com/casys-kaist/pintos-kaist
@@ -19,3 +22,4 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
    
    echo "source ~/pintos-kaist/activate" >> ~/.bashrc
    source ~/.bashrc
+
