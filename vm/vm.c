@@ -6,6 +6,15 @@
 
 #define VM
 
+struct disk *swap_disk;
+struct bitmap *swap_table;
+struct lock swap_lock;
+
+/* my implement functions */
+uint64_t page_hash_create(const struct hash_elem *e, void *aux);
+bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux);
+void vm_swap_init(void);
+
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
 void
@@ -18,6 +27,7 @@ vm_init (void) {
 	register_inspect_intr ();
 	/* DO NOT MODIFY UPPER LINES. */
 	/* TODO: Your code goes here. */
+	vm_swap_init();
 }
 
 /* Get the type of the page. This function is useful if you want to know the
@@ -64,19 +74,26 @@ err:
 
 /* Find VA from spt and return page. On error, return NULL. */
 struct page *
-spt_find_page (struct supplemental_page_table *spt UNUSED, void *va UNUSED) {
+spt_find_page (struct supplemental_page_table *spt, void *va) {
 	struct page *page = NULL;
 	/* TODO: Fill this function. */
+	struct page target;
+	target.va = va;
+
+	struct hash_elem *e = hash_find(&spt->hash_table, &target.h_elem);
+	if(e != NULL)
+		page = hash_entry(e, struct page, h_elem);
 
 	return page;
 }
 
 /* Insert PAGE into spt with validation. */
 bool
-spt_insert_page (struct supplemental_page_table *spt UNUSED,
-		struct page *page UNUSED) {
+spt_insert_page (struct supplemental_page_table *spt,
+		struct page *page) {
 	int succ = false;
-	/* TODO: Fill this function. */
+	if(hash_insert(&spt->hash_table, &page->h_elem) == NULL)
+		succ = true;
 
 	return succ;
 }
@@ -175,13 +192,25 @@ vm_do_claim_page (struct page *page) {
 
 /* Initialize new supplemental page table */
 void
-supplemental_page_table_init (struct supplemental_page_table *spt UNUSED) {
+supplemental_page_table_init (struct supplemental_page_table *spt) {
+	hash_init(&spt->hash_table, &page_hash_create, &page_cmp_hash, NULL);
 }
 
 /* Copy supplemental page table from src to dst */
 bool
-supplemental_page_table_copy (struct supplemental_page_table *dst UNUSED,
-		struct supplemental_page_table *src UNUSED) {
+supplemental_page_table_copy (struct supplemental_page_table *dst,
+		struct supplemental_page_table *src) {
+	struct hash_iterator iter;
+	hash_first(&iter, &src->hash_table);
+	while(hash_next(&iter)){
+		struct page *p = hash_entry(hash_cur(&iter), struct page, h_elem);
+
+		// todo: page 새로운 할당
+		if(!){
+			return false;
+		}
+	}
+	return true;
 }
 
 /* Free the resource hold by the supplemental page table */
@@ -190,3 +219,18 @@ supplemental_page_table_kill (struct supplemental_page_table *spt UNUSED) {
 	/* TODO: Destroy all the supplemental_page_table hold by thread and
 	 * TODO: writeback all the modified contents to the storage. */
 }
+
+/* my implement functions */
+uint64_t page_hash_create(const struct hash_elem *e, void *aux){
+	struct page *p = hash_entry(e, struct page, h_elem);
+	return hash_bytes(&p->va, sizeof(p->va));
+}
+
+bool page_cmp_hash(const struct hash_elem *a,
+		const struct hash_elem *b,
+		void *aux){
+	struct page *pa = hash_entry(a, struct page, h_elem);
+	struct page *pb = hash_entry(b, struct page, h_elem);
+	return pa->va < pb->va;
+}
+

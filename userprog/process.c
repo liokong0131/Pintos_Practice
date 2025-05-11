@@ -36,7 +36,11 @@ process_init (void) {
 	struct thread *curThread = thread_current ();
 	curThread->is_process = true;
 
-	curThread->fdt = (struct file **) palloc_get_page(PAL_USER);
+#ifndef VM
+	curThread->fdt = (struct file **) palloc_get_page(PAL_USER | PAL_ZERO);
+#else
+	curThread->fdt = (struct file **) vm_alloc_page(type, upage, true);
+#endif
 	if (curThread->fdt == NULL) { 
 		thread_exit();
 	}
@@ -142,7 +146,7 @@ duplicate_pte (uint64_t *pte, void *va, void *aux) {
 
 	/* 3. TODO: Allocate new PAL_USER page for the child and set result to
 	 *    TODO: NEWPAGE. */
-	if ((newpage = palloc_get_page(PAL_USER | PAL_ZERO)) == NULL)
+	if ((newpage = palloc_get_page(PAL_ZERO)) == NULL)
 		return false;
 	/* 4. TODO: Duplicate parent's page to the new page and
 	 *    TODO: check whether parent's page is writable or not (set WRITABLE

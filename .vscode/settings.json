@@ -5,6 +5,10 @@
         "thread.h": "c",
         "intr-stubs.h": "c",
         "stdint.h": "c",
-        "debug.h": "c"
+        "debug.h": "c",
+        "disk.h": "c",
+        "malloc.h": "c",
+        "hash.h": "c",
+        "vm.h": "c"
     }
 }
