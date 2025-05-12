@@ -48,7 +48,8 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	struct anon_page *anon_page = &page->anon;
 	anon_page->is_in_mem = true;
 	anon_page->swap_table = swap_table;
-	
+	anon_page->swap_lock = &swap_lock;
+
 	struct frame *frame = malloc(sizeof(struct frame));
 	frame->kva = kva;
 	frame->page = page;
@@ -60,7 +61,7 @@ static bool
 anon_swap_in (struct page *page, void *kva) {
 	struct anon_page *anon_page = &page->anon;
 
-	lock_acquire(swap_lock);
+	lock_acquire(&swap_lock);
 
 	for(int i=0; i<8; i++){
 		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
