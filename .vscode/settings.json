@@ -9,6 +9,7 @@
         "disk.h": "c",
         "malloc.h": "c",
         "hash.h": "c",
-        "vm.h": "c"
+        "vm.h": "c",
+        "inspect.h": "c"
     }
 }

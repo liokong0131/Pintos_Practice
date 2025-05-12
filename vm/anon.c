@@ -42,29 +42,40 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	/* Set up the handler */
 	page->operations = &anon_ops;
 
+	/* page initialize */
 	struct anon_page *anon_page = &page->anon;
-
-	size_t cache_idx = 0;
-	for(int i=0; i<8; i++){
-		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 0, true);
-    	ASSERT(anon_page->swap_sectors[i] != BITMAP_ERROR);
-
-		cache_idx = anon_page->swap_sectors[i];
-	}
-	
-	bool is_in_mem = false;
+	anon_page->is_in_mem = true;
 }
 
 /* Swap in the page by read contents from the swap disk. */
 static bool
 anon_swap_in (struct page *page, void *kva) {
 	struct anon_page *anon_page = &page->anon;
+	for(int i=0; i<8; i++){
+		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
+	}
 }
+	
 
 /* Swap out the page by writing contents to the swap disk. */
 static bool
 anon_swap_out (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
+
+	size_t cache_idx = 0;
+	for(int i=0; i<8; i++){
+		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 0, true);
+    	if(anon_page->swap_sectors[i] != BITMAP_ERROR){
+			PANIC("(in anon) Swap allocation failed: swap_sectors index %d", i);
+		}
+
+		cache_idx = anon_page->swap_sectors[i];
+		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
+	}
+
+	palloc_free_page(page->frame->kva);
+	page->frame = NULL;
+	return true;
 }
 
 /* Destroy the anonymous page. PAGE will be freed by the caller. */

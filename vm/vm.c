@@ -3,17 +3,13 @@
 #include "threads/malloc.h"
 #include "vm/vm.h"
 #include "vm/inspect.h"
-
+#include "vm/file.h"
+#include "threads/mmu.h"
 #define VM
-
-struct disk *swap_disk;
-struct bitmap *swap_table;
-struct lock swap_lock;
 
 /* my implement functions */
 uint64_t page_hash_create(const struct hash_elem *e, void *aux);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux);
-void vm_swap_init(void);
 
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
@@ -65,8 +61,30 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 		/* TODO: Create the page, fetch the initialier according to the VM type,
 		 * TODO: and then create "uninit" page struct by calling uninit_new. You
 		 * TODO: should modify the field after calling the uninit_new. */
+		struct page *page = (struct page *)malloc(sizeof(page));
+		if(page == NULL){
+			goto err;
+		}
+
+		switch(type){
+		case VM_ANON:
+			uninit_new(page, upage, init, type, aux, anon_initializer);
+			break;
+		case VM_FILE:
+			uninit_new(page, upage, init, type, aux, file_backed_initializer);
+			break;
+		default:
+			goto err;
+		}
+
+		page->writable = writable;
 
 		/* TODO: Insert the page into the spt. */
+		if (!spt_insert_page(spt, page)) {
+			free(page);
+			goto err;
+		}
+		return true;
 	}
 err:
 	return false;
@@ -100,6 +118,7 @@ spt_insert_page (struct supplemental_page_table *spt,
 
 void
 spt_remove_page (struct supplemental_page_table *spt, struct page *page) {
+	hash_delete(&spt->hash_table, &page->h_elem);
 	vm_dealloc_page (page);
 	return true;
 }
@@ -203,9 +222,11 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 	struct hash_iterator iter;
 	hash_first(&iter, &src->hash_table);
 	while(hash_next(&iter)){
-		struct page *p = hash_entry(hash_cur(&iter), struct page, h_elem);
+		struct page *page = hash_entry(hash_cur(&iter), struct page, h_elem);
 
 		// todo: page 새로운 할당
+		struct page *npage;
+		vm_alloc_page_with_initializer()
 		if(!){
 			return false;
 		}
@@ -218,19 +239,38 @@ void
 supplemental_page_table_kill (struct supplemental_page_table *spt UNUSED) {
 	/* TODO: Destroy all the supplemental_page_table hold by thread and
 	 * TODO: writeback all the modified contents to the storage. */
+	struct hash_iterator iter;
+	struct thread *curThread = thread_current();
+	hash_first(&iter, &spt->hash_table);
+	while(hash_next(&iter)){
+		struct page *page = hash_entry(hash_cur(&iter), struct page, h_elem);
+
+		if(pml4_is_dirty(curThread->pml4, page->va) && page_get_type(page) == VM_FILE){
+			if(!page->operations->swap_out){
+				PANIC("(in spt kill) File Writeback failed");
+			}
+		}
+
+		if (page->frame != NULL) {
+			free(page->frame);
+		}
+		hash_delete(&spt->hash_table, &iter);
+		
+		vm_dealloc_page(page);
+	}
 }
 
 /* my implement functions */
 uint64_t page_hash_create(const struct hash_elem *e, void *aux){
-	struct page *p = hash_entry(e, struct page, h_elem);
-	return hash_bytes(&p->va, sizeof(p->va));
+	struct page *page = hash_entry(e, struct page, h_elem);
+	return hash_bytes(&page->va, sizeof(page->va));
 }
 
 bool page_cmp_hash(const struct hash_elem *a,
 		const struct hash_elem *b,
 		void *aux){
-	struct page *pa = hash_entry(a, struct page, h_elem);
-	struct page *pb = hash_entry(b, struct page, h_elem);
-	return pa->va < pb->va;
+	struct page *page_a = hash_entry(a, struct page, h_elem);
+	struct page *page_b = hash_entry(b, struct page, h_elem);
+	return page_a->va < page_b->va;
 }
 
