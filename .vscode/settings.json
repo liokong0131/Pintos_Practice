@@ -10,6 +10,7 @@
         "malloc.h": "c",
         "hash.h": "c",
         "vm.h": "c",
-        "inspect.h": "c"
+        "inspect.h": "c",
+        "vaddr.h": "c"
     }
 }

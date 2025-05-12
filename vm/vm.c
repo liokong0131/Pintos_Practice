@@ -1,5 +1,6 @@
 /* vm.c: Generic interface for virtual memory objects. */
 
+#include <string.h>
 #include "threads/malloc.h"
 #include "vm/vm.h"
 #include "vm/inspect.h"
@@ -10,6 +11,7 @@
 /* my implement functions */
 uint64_t page_hash_create(const struct hash_elem *e, void *aux);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux);
+static void spte_destroy(struct hash_elem *e, void *aux UNUSED);
 
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
@@ -61,7 +63,7 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 		/* TODO: Create the page, fetch the initialier according to the VM type,
 		 * TODO: and then create "uninit" page struct by calling uninit_new. You
 		 * TODO: should modify the field after calling the uninit_new. */
-		struct page *page = (struct page *)malloc(sizeof(page));
+		struct page *page = (struct page *)malloc(sizeof(struct page));
 		if(page == NULL){
 			goto err;
 		}
@@ -222,13 +224,66 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 	struct hash_iterator iter;
 	hash_first(&iter, &src->hash_table);
 	while(hash_next(&iter)){
-		struct page *page = hash_entry(hash_cur(&iter), struct page, h_elem);
+		struct page *parent_page = hash_entry(hash_cur(&iter), struct page, h_elem);
 
-		// todo: page 새로운 할당
-		struct page *npage;
-		vm_alloc_page_with_initializer()
-		if(!){
-			return false;
+		// struct page copy
+		struct page *child_page = (struct page *)malloc(sizeof(struct page));;
+		if (child_page == NULL) {
+			PANIC("(in spt copy child_page malloc) Fail");
+		}
+		memcpy(child_page, parent_page, sizeof(struct page));
+		
+		// mem (or disk) page copy
+		switch(page_get_type(parent_page)){
+		case VM_ANON:
+			struct anon_page *anon_parent_page = &parent_page->anon;
+			struct anon_page *anon_child_page = &child_page->anon;
+			if(anon_parent_page->is_in_mem){
+				void *upage = palloc_get_page(PAL_USER | PAL_ZERO);
+				if (upage == NULL) {
+					PANIC("(in spt copy anon upage) Fail");
+				}
+
+				memcpy(upage, parent_page->frame->kva, PGSIZE);
+
+				struct frame *child_frame = malloc(sizeof(struct frame));
+				if (child_frame == NULL) {
+					PANIC("(in spt copy anon frame) Fail");
+				}
+				child_frame->kva = upage;
+				child_frame->page = child_page;
+
+				child_page->frame = child_frame;
+				anon_child_page->is_in_mem = true;
+			}else{
+				size_t cache_idx = 0;
+				struct disk *swap_disk = disk_get(1, 1);
+				void *buffer = malloc(DISK_SECTOR_SIZE);
+				for(int i=0; i<8; i++){
+					anon_child_page->swap_sectors[i] = bitmap_scan_and_flip(anon_child_page->swap_table, cache_idx, 1, true);
+					if(anon_child_page->swap_sectors[i] == BITMAP_ERROR){
+						PANIC("(in spt copy anon) Fail: swap_sectors index %d", i);
+					}
+
+					cache_idx = anon_child_page->swap_sectors[i];
+					
+					if(buffer == NULL){
+						PANIC("(in spt copy anon malloc) Fail");
+					}
+					disk_read(swap_disk, anon_parent_page->swap_sectors[i], buffer);
+					disk_write(swap_disk, cache_idx, buffer);
+				}
+				free(buffer);
+				anon_child_page->is_in_mem = false;
+			}
+			if(!spt_insert_page(dst, child_page)){
+				PANIC("(in spt copy insert page) Fail");
+			}
+			break;
+		case VM_FILE:
+		case VM_UNINIT:
+		default:
+			break;
 		}
 	}
 	return true;
@@ -239,25 +294,7 @@ void
 supplemental_page_table_kill (struct supplemental_page_table *spt UNUSED) {
 	/* TODO: Destroy all the supplemental_page_table hold by thread and
 	 * TODO: writeback all the modified contents to the storage. */
-	struct hash_iterator iter;
-	struct thread *curThread = thread_current();
-	hash_first(&iter, &spt->hash_table);
-	while(hash_next(&iter)){
-		struct page *page = hash_entry(hash_cur(&iter), struct page, h_elem);
-
-		if(pml4_is_dirty(curThread->pml4, page->va) && page_get_type(page) == VM_FILE){
-			if(!page->operations->swap_out){
-				PANIC("(in spt kill) File Writeback failed");
-			}
-		}
-
-		if (page->frame != NULL) {
-			free(page->frame);
-		}
-		hash_delete(&spt->hash_table, &iter);
-		
-		vm_dealloc_page(page);
-	}
+	hash_destroy(&spt->hash_table, spte_destroy);
 }
 
 /* my implement functions */
@@ -272,5 +309,12 @@ bool page_cmp_hash(const struct hash_elem *a,
 	struct page *page_a = hash_entry(a, struct page, h_elem);
 	struct page *page_b = hash_entry(b, struct page, h_elem);
 	return page_a->va < page_b->va;
+}
+
+// hash_action_func
+static void
+spte_destroy(struct hash_elem *e, void *aux UNUSED){
+	struct page *page = hash_entry(e, struct page, h_elem);
+	vm_dealloc_page(page);
 }
 
