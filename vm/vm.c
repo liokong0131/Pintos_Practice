@@ -172,12 +172,18 @@ vm_handle_wp (struct page *page UNUSED) {
 
 /* Return true on success */
 bool
-vm_try_handle_fault (struct intr_frame *f UNUSED, void *addr UNUSED,
-		bool user UNUSED, bool write UNUSED, bool not_present UNUSED) {
-	struct supplemental_page_table *spt UNUSED = &thread_current ()->spt;
+vm_try_handle_fault (struct intr_frame *f, void *addr,
+		bool user, bool write, bool not_present) {
+	struct supplemental_page_table *spt = &thread_current ()->spt;
 	struct page *page = NULL;
 	/* TODO: Validate the fault */
 	/* TODO: Your code goes here */
+
+	if((page = spt_find_page(spt, addr)) == NULL)
+		return false;
+
+	if(!user || (!page->writable && write))
+		return false;
 
 	return vm_do_claim_page (page);
 }
@@ -209,6 +215,15 @@ vm_do_claim_page (struct page *page) {
 	page->frame = frame;
 
 	/* TODO: Insert page table entry to map page's VA to frame's PA. */
+	struct thread *curThread = thread_current();
+	void *upage = page->va;
+	void *kva = frame->kva;
+
+	if(!pml4_set_page(curThread->pml4, upage, kva, page->writable)){
+		palloc_free_page(kva);
+		free(frame);
+		return false;
+	}
 
 	return swap_in (page, frame->kva);
 }
