@@ -32,8 +32,6 @@ vm_anon_init (void) {
 	
 	swap_table = bitmap_create(swap_page_size);
 	ASSERT(swap_table != NULL);
-
-	bitmap_set_all(swap_table, false);
 	
 	lock_init(&swap_lock);
 }
@@ -53,6 +51,9 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	struct frame *frame = malloc(sizeof(struct frame));
 	frame->kva = kva;
 	frame->page = page;
+	frame->ref_cnt = 0;
+	hash_insert(page->frame_table, &frame->h_elem);
+
 	return true;
 }
 
@@ -67,6 +68,8 @@ anon_swap_in (struct page *page, void *kva) {
 		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
 	}
 
+	lock_release(&swap_lock);
+
 	struct frame *frame = malloc(sizeof(struct frame));
 	if (frame == NULL) {
 		PANIC("(in anon swap_in frame malloc) Fail");
@@ -74,6 +77,8 @@ anon_swap_in (struct page *page, void *kva) {
 
 	frame->kva = kva;
 	frame->page = page;
+	frame->ref_cnt = 0;
+	hash_insert(page->frame_table, &frame->h_elem);
 
 	page->frame = frame;
 	anon_page->is_in_mem = true;
@@ -86,6 +91,9 @@ anon_swap_out (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
 
 	size_t cache_idx = 0;
+
+	lock_acquire(&swap_lock);
+
 	for(int i=0; i<8; i++){
 		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 1, true);
     	if(anon_page->swap_sectors[i] == BITMAP_ERROR){
@@ -96,8 +104,12 @@ anon_swap_out (struct page *page) {
 		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
 	}
 
+	lock_release(&swap_lock);
+
+	hash_delete(page->frame_table, &page->frame->h_elem);
 	palloc_free_page(page->frame->kva);
 	free(page->frame);
+
 	page->frame = NULL;
 	anon_page->is_in_mem = false;
 	return true;
@@ -108,12 +120,18 @@ static void
 anon_destroy (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
 
+
 	if(anon_page->is_in_mem){
+		hash_delete(page->frame_table, &page->frame->h_elem);
 		palloc_free_page(page->frame->kva);
 		free(page->frame);
 	} else{
+		lock_acquire(&swap_lock);
+
 		for(int i=0; i<8; i++){
 			bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 		}
+
+		lock_release(&swap_lock);
 	}
 }

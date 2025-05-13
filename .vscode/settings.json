@@ -11,6 +11,7 @@
         "hash.h": "c",
         "vm.h": "c",
         "inspect.h": "c",
-        "vaddr.h": "c"
+        "vaddr.h": "c",
+        "synch.h": "c"
     }
 }

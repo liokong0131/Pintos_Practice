@@ -53,6 +53,7 @@ struct page {
 
 	struct hash_elem h_elem;
 	bool writable;
+	struct hash *frame_table;
 	/* Per-type data are binded into the union.
 	 * Each function automatically detects the current union */
 	union {
@@ -69,6 +70,8 @@ struct page {
 struct frame {
 	void *kva;
 	struct page *page;
+	struct hash_elem h_elem;
+	int ref_cnt;
 };
 
 /* The function table for page operations.

@@ -8,6 +8,8 @@
 #include "threads/mmu.h"
 #define VM
 
+struct hash *frame_table;
+
 /* my implement functions */
 uint64_t page_hash_create(const struct hash_elem *e, void *aux);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux);
@@ -25,7 +27,7 @@ vm_init (void) {
 	register_inspect_intr ();
 	/* DO NOT MODIFY UPPER LINES. */
 	/* TODO: Your code goes here. */
-	vm_swap_init();
+	hash_init(frame_table, &frame_hash_create, &frame_cmp_hash, NULL);
 }
 
 /* Get the type of the page. This function is useful if you want to know the
@@ -80,7 +82,7 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 		}
 
 		page->writable = writable;
-
+		page->frame_table = frame_table;
 		/* TODO: Insert the page into the spt. */
 		if (!spt_insert_page(spt, page)) {
 			free(page);
@@ -252,6 +254,8 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 				}
 				child_frame->kva = upage;
 				child_frame->page = child_page;
+				child_frame->ref_cnt = parent_page->frame->ref_cnt;
+				hash_insert(frame_table, &child_frame->h_elem);
 
 				child_page->frame = child_frame;
 				anon_child_page->is_in_mem = true;
@@ -298,7 +302,7 @@ supplemental_page_table_kill (struct supplemental_page_table *spt UNUSED) {
 }
 
 /* my implement functions */
-uint64_t page_hash_create(const struct hash_elem *e, void *aux){
+uint64_t page_hash_create(const struct hash_elem *e, void *aux UNUSED){
 	struct page *page = hash_entry(e, struct page, h_elem);
 	return hash_bytes(&page->va, sizeof(page->va));
 }
@@ -311,10 +315,24 @@ bool page_cmp_hash(const struct hash_elem *a,
 	return page_a->va < page_b->va;
 }
 
+uint64_t frame_hash_create(const struct hash_elem *e, void *aux UNUSED){
+	struct frame *frame = hash_entry(e, struct frame, h_elem);
+	return hash_bytes(&frame->kva, sizeof(frame->kva));
+}
+
+bool frame_cmp_hash(const struct hash_elem *a,
+		const struct hash_elem *b,
+		void *aux){
+	struct frame *frame_a = hash_entry(a, struct frame, h_elem);
+	struct frame *frame_b = hash_entry(b, struct frame, h_elem);
+	return frame_a->kva < frame_b->kva;
+}
+
 // hash_action_func
 static void
 spte_destroy(struct hash_elem *e, void *aux UNUSED){
 	struct page *page = hash_entry(e, struct page, h_elem);
 	vm_dealloc_page(page);
 }
+
 
