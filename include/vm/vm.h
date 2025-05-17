@@ -18,7 +18,7 @@ enum vm_type {
 	/* Auxillary bit flag marker for store information. You can add more
 	 * markers, until the value is fit in the int. */
 	VM_COPY = (1 << 3),
-	VM_MARKER_1 = (1 << 4),
+	VM_STACK = (1 << 4),
 
 	/* DO NOT EXCEED THIS VALUE. */
 	VM_MARKER_END = (1 << 31),
@@ -98,6 +98,10 @@ struct supplemental_page_table {
 	struct hash hash_table;
 
 };
+
+struct copy_info{
+	struct page *parent_page;
+}
 
 #include "threads/thread.h"
 void supplemental_page_table_init (struct supplemental_page_table *spt);

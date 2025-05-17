@@ -15,7 +15,8 @@ static struct lock spt_lock;
 unsigned page_hash_create(const struct hash_elem *e, void *aux UNUSED);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux UNUSED);
 static void spte_destroy(struct hash_elem *e, void *aux UNUSED);
-
+static bool spte_copy(struct hash_elem *e, void *aux UNUSED);
+static bool page_copy (struct page *page, void *aux)
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
 void
@@ -72,14 +73,17 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 			goto err;
 		}
 
+		if(type & VM_COPY){
+			init = spte_copy;
+		}
+		//else if(type & VM_STACK){}
+
 		switch(VM_TYPE(type)){
 		case VM_ANON:
 			uninit_new(page, upage, init, type, aux, anon_initializer);
 			break;
 		case VM_FILE:
 			uninit_new(page, upage, init, type, aux, file_backed_initializer);
-			break;
-		case VM_COPY:
 			break;
 		default:
 			goto err;
@@ -92,6 +96,7 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 			free(page);
 			goto err;
 		}
+
 		return true;
 	}
 err:
@@ -277,16 +282,16 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 		struct supplemental_page_table *src) {
 	struct hash_iterator iter;
 	hash_first(&iter, &src->hash_table);
-	
 	while(hash_next(&iter)){
 		struct page *parent_page = hash_entry(hash_cur(&iter), struct page, h_elem);
-
+		struct copy_info *c_info = (struct copy_info *)malloc(sizeof(struct copy_info));
+		c_info->parent_page = parent_page;
+		void *aux = c_info; 
 		// struct page copy
-		if (!vm_alloc_page(VM_COPY, parent_page->va, parent_page->writable)) {
-			PANIC("(in spt copy child_page malloc) Fail");
+		if (!(vm_alloc_page_with_initializer(VM_ANON | VM_COPY, parent_page->va, parent_page->writable, page_copy, aux)
+			 && vm_claim_page(parent_page->va))) {
+			return false;
 		}
-		struct page *child_page = spt_find_page(src, parent_page->va);
-		memcpy(child_page, parent_page, sizeof(struct page));
 		
 		// mem (or disk) page copy
 		switch(page_get_type(parent_page)){
@@ -373,4 +378,77 @@ spte_destroy(struct hash_elem *e, void *aux UNUSED){
 	vm_dealloc_page(page);
 }
 
+static bool
+spte_copy (struct hash_elem *e, void *aux UNUSED) {
+	struct page *page = hash_entry(e, struct page, h_elem);
+	hash_apply(&dst->hash_table, spte_copy);
+	while(hash_next(&iter)){
+		struct page *parent_page = hash_entry(hash_cur(&iter), struct page, h_elem);
 
+		// struct page copy
+		if (!vm_alloc_page(VM_COPY, parent_page->va, parent_page->writable)) {
+			PANIC("(in spt copy child_page malloc) Fail");
+		}
+		struct page *child_page = spt_find_page(src, parent_page->va);
+		memcpy(child_page, parent_page, sizeof(struct page));
+		
+		// mem (or disk) page copy
+		switch(page_get_type(parent_page)){
+		case VM_ANON: {
+			struct anon_page *anon_parent_page = &parent_page->anon;
+			struct anon_page *anon_child_page = &child_page->anon;
+			if(anon_parent_page->is_in_mem){
+				if(!vm_do_claim_page(child_page)){
+					PANIC("(in spt copy claim page) Fail");
+				}
+				struct frame *child_frame = child_page->frame;
+				memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
+				child_frame->page = child_page;
+				child_frame->ref_cnt = parent_page->frame->ref_cnt;
+
+				//anon_child_page->is_in_mem = true;
+			}else{
+				size_t cache_idx = 0;
+				struct disk *swap_disk = disk_get(1, 1);
+				void *buffer = malloc(DISK_SECTOR_SIZE);
+				for(int i=0; i<8; i++){
+					anon_child_page->swap_sectors[i] = bitmap_scan_and_flip(anon_child_page->swap_table, cache_idx, 1, true);
+					if(anon_child_page->swap_sectors[i] == BITMAP_ERROR){
+						PANIC("(in spt copy anon) Fail: swap_sectors index %d", i);
+					}
+
+					cache_idx = anon_child_page->swap_sectors[i];
+					
+					if(buffer == NULL){
+						PANIC("(in spt copy anon malloc) Fail");
+					}
+					disk_read(swap_disk, anon_parent_page->swap_sectors[i], buffer);
+					disk_write(swap_disk, cache_idx, buffer);
+				}
+				free(buffer);
+				//anon_child_page->is_in_mem = false;
+			}
+			break;
+		}
+		case VM_FILE:
+		case VM_UNINIT:
+		default:
+			break;
+		}
+	}
+	return true;
+}
+
+static bool
+page_copy (struct page *page, void *aux){
+	struct file_info *f_info = (struct file_info *)aux;
+
+	off_t bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+	if(bytes_read != (off_t)f_info->read_bytes){
+		return false;
+	}
+
+	memset(page->frame->kva + f_info->read_bytes, 0, f_info->zero_bytes);
+	
+	return true;
+}
