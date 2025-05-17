@@ -139,6 +139,7 @@ page_fault (struct intr_frame *f) {
 	   be assured of reading CR2 before it changed). */
 	intr_enable ();
 
+	//printf("[PAGE FAULT] Fault address: %p, error code: %x\n", fault_addr, f->error_code);
 
 	/* Determine cause. */
 	not_present = (f->error_code & PF_P) == 0;

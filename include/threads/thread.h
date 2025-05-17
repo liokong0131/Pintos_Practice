@@ -1,7 +1,9 @@
 #ifndef THREADS_THREAD_H
 #define THREADS_THREAD_H
 
+#define USERPROG
 #define VM
+//#define DEBUG
 
 #include <debug.h>
 #include <list.h>

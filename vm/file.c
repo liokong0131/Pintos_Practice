@@ -30,13 +30,15 @@ file_backed_initializer (struct page *page, enum vm_type type, void *kva) {
 	page->operations = &file_ops;
 
 	struct file_page *file_page = &page->file;
+	struct file_info *f_info = page->aux;
+	file_page->f_info.file = f_info->file;
+	file_page->f_info.offset = f_info->offset;
+	file_page->f_info.read_bytes = f_info->read_bytes;
+	file_page->f_info.zero_bytes = f_info->zero_bytes;
 
-	off_t bytes_read = file_read_at(file_page->file, kva, file_page->file_length, file_page->offset);
-	if(bytes_read != (off_t)file_page->file_length){
-		return false;
-	}
+	free(f_info);
 
-	memset(kva + file_page->file_length, 0, file_page->zero_length);
+	file_page->is_in_mem = true;
 
 	return true;
 }
@@ -45,13 +47,14 @@ file_backed_initializer (struct page *page, enum vm_type type, void *kva) {
 static bool
 file_backed_swap_in (struct page *page, void *kva) {
 	struct file_page *file_page = &page->file;
-
-	off_t bytes_read = file_read_at(file_page->file, kva, file_page->file_length, file_page->offset);
-	if(bytes_read != (off_t)file_page->file_length){
+	struct file_info *f_info = &file_page->f_info;
+	off_t bytes_read = file_read_at(f_info->file, kva, f_info->read_bytes, f_info->offset);
+	if(bytes_read != (off_t)f_info->read_bytes){
 		return false;
 	}
 
-	memset(kva + file_page->file_length, 0, file_page->zero_length);
+	memset(kva + f_info->read_bytes, 0, f_info->zero_bytes);
+	file_page->is_in_mem = true;
 
 	return true;
 }
@@ -59,15 +62,23 @@ file_backed_swap_in (struct page *page, void *kva) {
 /* Swap out the page by writeback contents to the file. */
 static bool
 file_backed_swap_out (struct page *page) {
-	struct file_page *file_page UNUSED = &page->file;
-
-	if(pagedir_is_dirty())
+	struct file_page *file_page = &page->file;
+	struct file_info *f_info = &file_page->f_info;
+	struct thread *curThread = thread_current();
+	if(pml4_is_dirty(curThread->pml4, page->va)){
+		file_write_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+	}
+	file_page->is_in_mem = false;
 }
 
 /* Destory the file backed page. PAGE will be freed by the caller. */
 static void
 file_backed_destroy (struct page *page) {
-	struct file_page *file_page UNUSED = &page->file;
+	struct file_page *file_page = &page->file;
+	struct file_info *f_info = &file_page->f_info;
+	struct thread *curThread = thread_current();
+	if(file_page->is_in_mem)
+		file_backed_swap_out(page);
 }
 
 /* Do the mmap */

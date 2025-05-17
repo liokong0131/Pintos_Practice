@@ -9,7 +9,6 @@ struct anon_page {
     disk_sector_t swap_sectors[8];
     bool is_in_mem;
     struct bitmap *swap_table;
-    struct lock *swap_lock;
 };
 
 void vm_anon_init (void);

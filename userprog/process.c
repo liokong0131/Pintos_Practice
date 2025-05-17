@@ -1,5 +1,5 @@
-#define USERPROG
-//#define DEBUG
+//#define USERPROG
+
 #include "userprog/process.h"
 #include <debug.h>
 #include <inttypes.h>
@@ -23,6 +23,7 @@
 #include "intrinsic.h"
 #ifdef VM
 #include "vm/vm.h"
+#include "vm/file.h"
 #endif
 
 static void process_cleanup (void);
@@ -36,11 +37,7 @@ process_init (void) {
 	struct thread *curThread = thread_current ();
 	curThread->is_process = true;
 
-#ifndef VM
-	curThread->fdt = (struct file **) palloc_get_page(PAL_USER | PAL_ZERO);
-#else
-	curThread->fdt = (struct file **) vm_alloc_page(type, upage, true);
-#endif
+	curThread->fdt = (struct file **) palloc_get_page(PAL_ZERO);
 	if (curThread->fdt == NULL) { 
 		thread_exit();
 	}
@@ -66,7 +63,7 @@ process_create_initd (const char *file_name) {
 	
 	/* Make a copy of FILE_NAME.
 	 * Otherwise there's a race between the caller and load(). */
-	fn_copy = palloc_get_page (0);
+	fn_copy = palloc_get_page (PAL_ZERO);
 	if (fn_copy == NULL)
 		return TID_ERROR;
 	strlcpy (fn_copy, file_name, PGSIZE);
@@ -202,10 +199,6 @@ __do_fork (void *aux) {
 
 	process_init ();
 
-#ifdef DEBUG
-	//printf("\nparent files: %d\n\n", parent->num_files);
-#endif
-
 	// if (parent->running_file != NULL){
 	// 	curThread->running_file = file_duplicate(parent->running_file);
 	// 	//file_deny_write(curThread->fdt[fdt_idx]);
@@ -224,10 +217,6 @@ __do_fork (void *aux) {
 	}
 	curThread->num_files = parent->num_files;
 	curThread->fdt_cur = parent->fdt_cur;
-
-#ifdef DEBUG
-	//printf("\nafter dup fdt\n");
-#endif
 
 	if_.R.rax = 0;
 
@@ -312,10 +301,10 @@ process_exit (void) {
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
 	
+#ifdef VM
+	//supplemental_page_table_destroy(&curThread->spt);
+#endif
 
-#ifdef DEBUG
-	//printf("\n(pexit) thread_name: %s\n\n", curThread->name);
-#endif 
 	if(curThread->is_process){
 		printf ("%s: exit(%d)\n", curThread->name, curThread->exit_status);
 		if (curThread->fdt != NULL){
@@ -495,10 +484,6 @@ load (const char *file_name, struct intr_frame *if_) {
 	file_ofs = ehdr.e_phoff;
 	for (i = 0; i < ehdr.e_phnum; i++) {
 		struct Phdr phdr;
-
-#ifdef DEBUG
-		//printf("(load) i: %d\n", i);
-#endif
 
 		if (file_ofs < 0 || file_ofs > file_length (file))
 			goto done;
@@ -722,6 +707,16 @@ lazy_load_segment (struct page *page, void *aux) {
 	/* TODO: Load the segment from the file */
 	/* TODO: This called when the first page fault occurs on address VA. */
 	/* TODO: VA is available when calling this function. */
+	struct file_info *f_info = (struct file_info *)aux;
+
+	off_t bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+	if(bytes_read != (off_t)f_info->read_bytes){
+		return false;
+	}
+
+	memset(page->frame->kva + f_info->read_bytes, 0, f_info->zero_bytes);
+	
+	return true;
 }
 
 /* Loads a segment starting at offset OFS in FILE at address
@@ -753,15 +748,23 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 		size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
 		/* TODO: Set up aux to pass information to the lazy_load_segment. */
-		void *aux = NULL;
+		struct file_info *f_info = (struct file_info *)malloc(sizeof(struct file_info));
+		f_info->file = file;
+		f_info->offset = ofs;
+		f_info->read_bytes = page_read_bytes;
+		f_info->zero_bytes = page_zero_bytes;
+
+		void *aux = f_info;
 		if (!vm_alloc_page_with_initializer (VM_ANON, upage,
-					writable, lazy_load_segment, aux))
+					writable, lazy_load_segment, aux)){
 			return false;
+		}
 
 		/* Advance. */
 		read_bytes -= page_read_bytes;
 		zero_bytes -= page_zero_bytes;
 		upage += PGSIZE;
+		ofs += page_read_bytes;
 	}
 	return true;
 }
@@ -772,10 +775,25 @@ setup_stack (struct intr_frame *if_) {
 	bool success = false;
 	void *stack_bottom = (void *) (((uint8_t *) USER_STACK) - PGSIZE);
 
-	/* TODO: Map the stack on stack_bottom and claim the page immediately.
-	 * TODO: If success, set the rsp accordingly.
-	 * TODO: You should mark the page is stack. */
-	/* TODO: Your code goes here */
+#ifdef DEBUG
+	printf("$$ setup_stack\n");
+#endif
+
+	if(vm_alloc_page(VM_ANON, stack_bottom, true)){
+		if(vm_claim_page(stack_bottom)){
+#ifdef DEBUG
+			printf("success claim\n");
+#endif	
+			if_->rsp = USER_STACK;
+			success = true;
+		} else{
+			vm_dealloc_page(spt_find_page(&thread_current()->spt, stack_bottom));
+		}
+	}
+
+#ifdef DEBUG
+	printf("rsp : %p\n", if_->rsp);
+#endif
 
 	return success;
 }
@@ -788,15 +806,14 @@ argument_tokenize(char *fn, int *argc, char *argv[]){
 	int i = 0;
 	for(token = strtok_r(fn, " ", &save_ptr); token != NULL; token = strtok_r(NULL, " ", &save_ptr)){
 		argv[i++] = token;
-#ifdef DEBUG
-		//printf("\ntoken: %s\n", token);
-#endif
 	}
 	*argc = i;
 }
 void
 argument_insert(int argc, char *argv[], struct intr_frame *if_){
 	char *arg_addr[128];
+
+	//printf("rsp : %p\n", if_->rsp);
 
 	// inserting value
 	for(int i = argc-1; i >= 0; i--){

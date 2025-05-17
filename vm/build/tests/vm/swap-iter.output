@@ -1,0 +1,54 @@
+Kernel command line: -q -f put swap-iter put large.txt run swap-iter
+0 ~ 9fc00 1
+100000 ~ 9e0000 1
+Pintos booting with: 
+	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
+	ext_mem: 0x100000 ~ 0x9e0000 (Usable: 9,088 kB)
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 337 sector (168 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 7,932 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00003"
+hd1:1: detected 100,800 sector (49 MB) disk, model "QEMU HARDDISK", serial "QM00004"
+Formatting file system...done.
+Boot complete.
+Putting 'swap-iter' into the file system...
+Putting 'large.txt' into the file system...
+Executing 'swap-iter':
+(swap-iter) begin
+(swap-iter) write sparsely over page 0
+(swap-iter) write sparsely over page 512
+(swap-iter) write sparsely over page 1024
+() write sparsely over page 512
+() write sparsely over page 1024
+Page fault at 0xffffffffc137280f: not present error reading page in user context.
+swap-iter: dying due to interrupt 0x0e (#PF Page-Fault Exception).
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=401007
+ cr2=ffffffffc137280f error=               4
+rax 00000000007edfff rbx 0000800424007800 rcx 00000000000004b8 rdx 00000000004b8000
+rsp 000000004747ff70 rbp 000000004747ff90 rsi 0000000001bedfc0 rdi 0000000000000001
+rip 0000000000401007 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000206 r12 0000000423ff3000 r13 0000800422c40800 r14 0000800423ff1000
+r15 0000800420ab3100 rflags 00000293
+es: 001b ds: 001b cs: 0023 ss: 001b
+swap-iter: exit(0)
+Interrupt 0x0d (#GP General Protection Exception) at rip=800421915b
+ cr2=ffffffffc137280f error=               0
+rax cccccccccccccccc rbx 000000000000000e rcx 0000000000000000 rdx cccccccccccccccc
+rsp 000000800423fd90 rbp 000000800423fda0 rsi 0000000000000000 rdi 0000008004336068
+rip 000000800421915b r8 000000800423fd78  r9 000000800421bd6f r10 0000000000000000
+r11 0000000000000206 r12 0000008004227ab2 r13 0000800422c40800 r14 0000800423ff1000
+r15 0000800420ab3100 rflags 00000202
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042188f6 0x800421d7c1 0x80042098f2 0x8004209d10 0x80042223c0 0x800421aec4 0x80042222cf 0x800421c7b0 0x800421c74c 0x80042072eb 0x800421d779 0x800421d96e 0x80042098f2 0x8004209d10.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 709 ticks
+Thread: 440 idle ticks, 219 kernel ticks, 50 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 116 reads, 15902 writes
+hd1:0: 7932 reads, 0 writes
+hd1:1: 0 reads, 16 writes
+Console: 2780 characters output
+Key

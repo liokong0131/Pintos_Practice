@@ -6,12 +6,16 @@
 struct page;
 enum vm_type;
 
-struct file_page {
+struct file_info{
 	struct file *file;
 	off_t offset;
-	size_t file_length;
-	size_t zero_length;
-	bool writable;
+	size_t read_bytes;
+	size_t zero_bytes;
+};
+
+struct file_page {
+	struct file_info f_info;
+	bool is_in_mem;
 };
 
 void vm_file_init (void);

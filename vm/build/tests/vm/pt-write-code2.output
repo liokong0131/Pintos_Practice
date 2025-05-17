@@ -1,0 +1,45 @@
+Kernel command line: -q -f put pt-write-code2 put sample.txt run pt-write-code2
+0 ~ 9fc00 1
+100000 ~ 13e0000 1
+Pintos booting with: 
+	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
+	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 337 sector (168 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 106 sector (53 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
+Formatting file system...done.
+Boot complete.
+Putting 'pt-write-code2' into the file system...
+Putting 'sample.txt' into the file system...
+Executing 'pt-write-code2':
+(pt-write-code2) begin
+(pt-write-code2) open "sample.txt"
+Page fault at 0x4000e8: rights violation error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421789f
+ cr2=00000000004000e8 error=               3
+rax 00000000004000e8 rbx 000080042420f800 rcx 00000000004000e9 rdx 000000000000003d
+rsp 0000008004244e10 rbp 0000008004244e40 rsi 000000800424f018 rdi 00000000004000e8
+rip 000000800421789f r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000202 r12 000000800421daa6 r13 0000800422c40800 r14 00008004244f1000
+r15 0000800420ab3100 rflags 00000202
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042188f6 0x800421d7c1 0x800421d96e 0x80042098f2 0x8004209d10 0x8004220974 0x800421f8f9 0x800421e089 0x800421dc62 0x800421d9e5 0x400165 0x400c33 0x400c7c 0Interrupt 0x0d (#GP General Protection Exception) at rip=8004215930
+ cr2=00000000004000e8 error=               0
+rax 0000800420bfd300 rbx 000080042420f800 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004244c10 rbp 0000008004244c20 rsi 0000000000008a0f rdi 0000000000000000
+rip 0000008004215930 r8 0000008004244b28  r9 000000800421bd6f r10 0000000000000000
+r11 0000000000000202 r12 000000800421daa6 r13 0000800422c40800 r14 00008004244f1000
+r15 0000800420ab3100 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:97 in kill().
+Timer: 86 ticks
+Thread: 40 idle ticks, 43 kernel ticks, 3 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 112 reads, 250 writes
+hd1:0: 106 reads, 0 writes
+hd1:1: 0 reads, 0 writes
+Console: 2449 characters output
+Key

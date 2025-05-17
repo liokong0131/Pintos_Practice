@@ -1,5 +1,6 @@
 //#define DEBUG
 #include "threads/thread.h"
+#include "threads/malloc.h"
 #include <debug.h>
 #include <stddef.h>
 #include <random.h>
@@ -203,9 +204,6 @@ thread_create (const char *name, int priority,
 	if (t == NULL)
 		return TID_ERROR;
 
-#ifdef DEBUG
-	printf("\n\n(thread_create) parent name : %s\n\n", thread_current()->name);
-#endif
 	/* Initialize thread. */
 	init_thread (t, name, priority);
 	tid = t->tid = allocate_tid ();
@@ -466,14 +464,8 @@ init_thread (struct thread *t, const char *name, int priority) {
 
 	t->status = THREAD_BLOCKED;
 
-#ifdef DEBUG
-	printf("\nbefore copy name, name: %s\n", name);
-#endif
 	strlcpy (t->name, name, sizeof t->name);
 
-#ifdef DEBUG
-	printf("\nafter copy name\n");
-#endif
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
 	t->magic = THREAD_MAGIC;
@@ -488,7 +480,7 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->nice = 0;
 	list_push_back (&all_list, &t->all_elem);
 
-	#ifdef USERPROG
+#ifdef USERPROG
 	//implement for fork, wait
 	//t->parent = NULL;
 	sema_init(&t->fork_sema, 0);
@@ -497,7 +489,7 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->exit_status = 0;
 	list_init(&t->child_list);
 	t->is_process = false;
-	#endif
+#endif
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should

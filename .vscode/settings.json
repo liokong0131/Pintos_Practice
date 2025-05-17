@@ -12,6 +12,9 @@
         "vm.h": "c",
         "inspect.h": "c",
         "vaddr.h": "c",
-        "synch.h": "c"
+        "synch.h": "c",
+        "intrinsic.h": "c",
+        "inttypes.h": "c",
+        "process.h": "c"
     }
 }

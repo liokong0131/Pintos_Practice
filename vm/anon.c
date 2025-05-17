@@ -20,7 +20,6 @@ static const struct page_operations anon_ops = {
 };
 
 struct bitmap *swap_table;
-struct lock swap_lock;
 
 /* Initialize the data for anonymous pages */
 void
@@ -32,8 +31,6 @@ vm_anon_init (void) {
 	
 	swap_table = bitmap_create(swap_page_size);
 	ASSERT(swap_table != NULL);
-	
-	lock_init(&swap_lock);
 }
 
 /* Initialize the file mapping */
@@ -45,14 +42,6 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	/* page initialize */
 	struct anon_page *anon_page = &page->anon;
 	anon_page->is_in_mem = true;
-	anon_page->swap_table = swap_table;
-	anon_page->swap_lock = &swap_lock;
-
-	struct frame *frame = malloc(sizeof(struct frame));
-	frame->kva = kva;
-	frame->page = page;
-	frame->ref_cnt = 0;
-	hash_insert(page->frame_table, &frame->h_elem);
 
 	return true;
 }
@@ -62,25 +51,13 @@ static bool
 anon_swap_in (struct page *page, void *kva) {
 	struct anon_page *anon_page = &page->anon;
 
-	lock_acquire(&swap_lock);
+	printf("disk size : %d\n", disk_size(swap_disk));
 
 	for(int i=0; i<8; i++){
+		printf("sec no : %d\n", anon_page->swap_sectors[i]);
 		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
+		bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 	}
-
-	lock_release(&swap_lock);
-
-	struct frame *frame = malloc(sizeof(struct frame));
-	if (frame == NULL) {
-		PANIC("(in anon swap_in frame malloc) Fail");
-	}
-
-	frame->kva = kva;
-	frame->page = page;
-	frame->ref_cnt = 0;
-	hash_insert(page->frame_table, &frame->h_elem);
-
-	page->frame = frame;
 	anon_page->is_in_mem = true;
 }
 	
@@ -92,10 +69,8 @@ anon_swap_out (struct page *page) {
 
 	size_t cache_idx = 0;
 
-	lock_acquire(&swap_lock);
-
 	for(int i=0; i<8; i++){
-		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 1, true);
+		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 1, false);
     	if(anon_page->swap_sectors[i] == BITMAP_ERROR){
 			PANIC("(in anon) Swap allocation failed: swap_sectors index %d", i);
 		}
@@ -103,14 +78,6 @@ anon_swap_out (struct page *page) {
 		cache_idx = anon_page->swap_sectors[i];
 		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
 	}
-
-	lock_release(&swap_lock);
-
-	hash_delete(page->frame_table, &page->frame->h_elem);
-	palloc_free_page(page->frame->kva);
-	free(page->frame);
-
-	page->frame = NULL;
 	anon_page->is_in_mem = false;
 	return true;
 }
@@ -120,18 +87,9 @@ static void
 anon_destroy (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
 
-
-	if(anon_page->is_in_mem){
-		hash_delete(page->frame_table, &page->frame->h_elem);
-		palloc_free_page(page->frame->kva);
-		free(page->frame);
-	} else{
-		lock_acquire(&swap_lock);
-
+	if(!anon_page->is_in_mem){
 		for(int i=0; i<8; i++){
 			bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 		}
-
-		lock_release(&swap_lock);
 	}
 }

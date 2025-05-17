@@ -17,7 +17,7 @@ enum vm_type {
 
 	/* Auxillary bit flag marker for store information. You can add more
 	 * markers, until the value is fit in the int. */
-	VM_MARKER_0 = (1 << 3),
+	VM_COPY = (1 << 3),
 	VM_MARKER_1 = (1 << 4),
 
 	/* DO NOT EXCEED THIS VALUE. */
@@ -53,7 +53,8 @@ struct page {
 
 	struct hash_elem h_elem;
 	bool writable;
-	struct hash *frame_table;
+	void *aux;
+
 	/* Per-type data are binded into the union.
 	 * Each function automatically detects the current union */
 	union {
@@ -70,7 +71,7 @@ struct page {
 struct frame {
 	void *kva;
 	struct page *page;
-	struct hash_elem h_elem;
+	struct list_elem l_elem;
 	int ref_cnt;
 };
 
@@ -103,6 +104,7 @@ void supplemental_page_table_init (struct supplemental_page_table *spt);
 bool supplemental_page_table_copy (struct supplemental_page_table *dst,
 		struct supplemental_page_table *src);
 void supplemental_page_table_kill (struct supplemental_page_table *spt);
+void supplemental_page_table_destroy (struct supplemental_page_table *spt);
 struct page *spt_find_page (struct supplemental_page_table *spt,
 		void *va);
 bool spt_insert_page (struct supplemental_page_table *spt, struct page *page);
