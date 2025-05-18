@@ -41,7 +41,7 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 
 	/* page initialize */
 	struct anon_page *anon_page = &page->anon;
-	anon_page->is_in_mem = true;
+	page->is_in_mem = true;
 
 	return true;
 }
@@ -58,7 +58,7 @@ anon_swap_in (struct page *page, void *kva) {
 		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
 		bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 	}
-	anon_page->is_in_mem = true;
+	page->is_in_mem = true;
 }
 	
 
@@ -78,7 +78,7 @@ anon_swap_out (struct page *page) {
 		cache_idx = anon_page->swap_sectors[i];
 		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
 	}
-	anon_page->is_in_mem = false;
+	page->is_in_mem = false;
 	return true;
 }
 
@@ -87,7 +87,7 @@ static void
 anon_destroy (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
 
-	if(!anon_page->is_in_mem){
+	if(!page->is_in_mem){
 		for(int i=0; i<8; i++){
 			bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 		}
