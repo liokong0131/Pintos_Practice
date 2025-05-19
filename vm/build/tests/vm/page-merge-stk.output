@@ -17,16 +17,49 @@ Executing 'page-merge-stk':
 (page-merge-stk) begin
 (page-merge-stk) init
 (page-merge-stk) sort chunk 0
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 123 ticks
-Thread: 54 idle ticks, 49 kernel ticks, 20 user ticks
+(page-merge-stk) sort chunk 1
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 2
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 3
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 4
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 5
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 6
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) sort chunk 7
+load: child-qsort: open failed
+child-qsort: exit(-1)
+(page-merge-stk) wait for child 0
+(page-merge-stk) wait for child 0: FAILED
+page-merge-stk: exit(1)
+Page fault at 0x4745ff8c: not present error writing page in user context.
+child-qsort: dying due to interrupt 0x0e (#PF Page-Fault Exception).
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=4000f3
+ cr2=000000004745ff8c error=               6
+rax 00000000004000e8 rbx 0000004747feb0ff rcx ffffffffffffff00 rdx 000000004747ffd0
+rsp 000000004745ff80 rbp 000000004747ffa0 rsi 000000004747ffd0 rdi 0000000000000002
+rip 00000000004000f3 r8 00000004272e8000  r9 0000800422c40800 r10 00008004272e6000
+r11 0000800420ab3100 r12 00008004272e6000 r13 0000010424400000 r14 00008004272e6000
+r15 00008004208a6500 rflags 00000202
+es: 001b ds: 001b cs: 0023 ss: 001b
+child-qsort: exit(0)
+Execution of 'page-merge-stk' complete.
+Timer: 300 ticks
+Thread: 126 idle ticks, 57 kernel ticks, 117 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 139 reads, 1010 writes
+hd0:1: 415 reads, 4678 writes
 hd1:0: 224 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1371 characters output
-Key
+Console: 2418 characters output
+Keyboard: 0 keys pressed
+Exception: 1 page faults
+Powering off...

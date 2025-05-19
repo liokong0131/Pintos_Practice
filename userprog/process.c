@@ -715,7 +715,7 @@ lazy_load_segment (struct page *page, void *aux) {
 	}
 
 	memset(page->frame->kva + f_info->read_bytes, 0, f_info->zero_bytes);
-	
+	page->is_in_mem = true;
 	return true;
 }
 
@@ -779,7 +779,7 @@ setup_stack (struct intr_frame *if_) {
 	printf("$$ setup_stack\n");
 #endif
 
-	if(vm_alloc_page(VM_ANON, stack_bottom, true)){
+	if(vm_alloc_page(VM_ANON | VM_STACK, stack_bottom, true)){
 		if(vm_claim_page(stack_bottom)){
 #ifdef DEBUG
 			printf("success claim\n");

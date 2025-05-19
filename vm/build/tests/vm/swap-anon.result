@@ -1,19 +1,19 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x80042188f6 0x800421d7c1 0x80042098f2 0x8004209d10 0x80042223c0 0x800421aec4 0x80042222cf 0x800421c7b0 0x800421c74c 0x80042072eb 0x800421d779 0x800421d96e 0x80042098f2 0x8004209d10 0x401062
+Call stack: 0x80042188f6 0x800421d7c9 0x80042098f2 0x8004209d10 0x8004222278 0x800421aec4 0x80042221b3 0x800421c7b0 0x800421c74c 0x80042072eb 0x800421d781 0x800421d976 0x80042098f2 0x8004209d10 0x401062
 Translation of call stack:
 0x00000080042188f6: debug_panic (lib/kernel/debug.c:32)
-0x000000800421d7c1: kill (userprog/exception.c:103)
+0x000000800421d7c9: kill (userprog/exception.c:103)
 0x00000080042098f2: intr_handler (threads/interrupt.c:352)
 0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)
-0x00000080042223c0: spte_destroy (vm/vm.c:371)
+0x0000008004222278: spte_destroy (vm/vm.c:347)
 0x000000800421aec4: hash_clear (lib/kernel/hash.c:58)
-0x00000080042222cf: supplemental_page_table_kill (vm/vm.c:344)
+0x00000080042221b3: supplemental_page_table_kill (vm/vm.c:325)
 0x000000800421c7b0: process_cleanup (userprog/process.c:354)
 0x000000800421c74c: process_exit (userprog/process.c:337)
 0x00000080042072eb: thread_exit (threads/thread.c:307)
-0x000000800421d779: kill (userprog/exception.c:96)
-0x000000800421d96e: page_fault (userprog/exception.c:164 (discriminator 12))
+0x000000800421d781: kill (userprog/exception.c:96)
+0x000000800421d976: page_fault (userprog/exception.c:164 (discriminator 12))
 0x00000080042098f2: intr_handler (threads/interrupt.c:352)
 0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)
 0x0000000000401062: (unknown)

@@ -27,8 +27,8 @@ r15 0000800420ab3100 rflags 00000202
 es: 001b ds: 001b cs: 0023 ss: 001b
 mmap-off: exit(0)
 Execution of 'mmap-off' complete.
-Timer: 658 ticks
-Thread: 457 idle ticks, 196 kernel ticks, 5 user ticks
+Timer: 672 ticks
+Thread: 468 idle ticks, 200 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 108 reads, 15904 writes
 hd1:0: 7933 reads, 0 writes

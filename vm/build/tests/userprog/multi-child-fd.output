@@ -17,16 +17,22 @@ Putting 'child-close' into the file system...
 Executing 'multi-child-fd':
 (multi-child-fd) begin
 (multi-child-fd) open "sample.txt"
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 96 ticks
-Thread: 42 idle ticks, 51 kernel ticks, 3 user ticks
+(child-close) begin
+(child-close) verified contents of "sample.txt"
+(child-close) end
+child-close: exit(0)
+(multi-child-fd) wait(exec()) = 0
+(multi-child-fd) verified contents of "sample.txt"
+(multi-child-fd) end
+multi-child-fd: exit(0)
+Execution of 'multi-child-fd' complete.
+Timer: 99 ticks
+Thread: 47 idle ticks, 49 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 148 reads, 488 writes
+hd0:1: 204 reads, 488 writes
 hd1:0: 220 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1410 characters output
-Key
+Console: 1338 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

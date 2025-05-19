@@ -14,16 +14,20 @@ Boot complete.
 Putting 'fork-boundary' into the file system...
 Executing 'fork-boundary':
 (fork-boundary) begin
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 83 ticks
-Thread: 38 idle ticks, 44 kernel ticks, 1 user ticks
+(fork-boundary) child run
+child-simple: exit(54)
+(fork-boundary) fork
+(fork-boundary) wait
+(fork-boundary) end
+fork-boundary: exit(0)
+Execution of 'fork-boundary' complete.
+Timer: 85 ticks
+Thread: 38 idle ticks, 45 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 240 writes
 hd1:0: 106 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1246 characters output
-Key
+Console: 1070 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

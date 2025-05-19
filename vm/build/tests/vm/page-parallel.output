@@ -15,16 +15,24 @@ Putting 'page-parallel' into the file system...
 Putting 'child-linear' into the file system...
 Executing 'page-parallel':
 (page-parallel) begin
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 92 ticks
-Thread: 43 idle ticks, 49 kernel ticks, 0 user ticks
+(page-parallel) wait for child 0
+child-linear: exit(66)
+(page-parallel) wait for child 1
+child-linear: exit(66)
+(page-parallel) wait for child 2
+child-linear: exit(66)
+child-linear: exit(66)
+(page-parallel) wait for child 3
+(page-parallel) end
+page-parallel: exit(0)
+Execution of 'page-parallel' complete.
+Timer: 187 ticks
+Thread: 48 idle ticks, 49 kernel ticks, 90 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 107 reads, 456 writes
+hd0:1: 229 reads, 456 writes
 hd1:0: 209 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1312 characters output
-Key
+Console: 1271 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

@@ -1,9 +1,19 @@
 FAIL
-Kernel panic in run: PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767
+Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042188f6 0x800421d7c9 0x800421d976 0x80042098f2 0x8004209d10 0x8004214bc4 0x8004214028 0x8004220900 0x800421f901 0x800421e091 0x800421dc6a 0x800421d9ed 0x400244 0x400fa5 0x400fee
 Translation of call stack:
 0x00000080042188f6: debug_panic (lib/kernel/debug.c:32)
-0x0000008004221785: vm_alloc_page_with_initializer (vm/vm.c:63)
-0x0000008004221f9f: supplemental_page_table_copy (vm/vm.c:285)
-0x000000800421c2c5: __do_fork (userprog/process.c:187)
-0x0000008004207767: kernel_thread (threads/thread.c:451)
+0x000000800421d7c9: kill (userprog/exception.c:103)
+0x000000800421d976: page_fault (userprog/exception.c:164 (discriminator 12))
+0x00000080042098f2: intr_handler (threads/interrupt.c:352)
+0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)
+0x0000008004214bc4: input_sector (devices/disk.c:440)
+0x0000008004214028: disk_read (devices/disk.c:225)
+0x0000008004220900: inode_read_at (filesys/inode.c:205)
+0x000000800421f901: file_read (filesys/file.c:74)
+0x000000800421e091: read (userprog/syscall.c:217)
+0x000000800421dc6a: syscall_handler (userprog/syscall.c:120)
+0x000000800421d9ed: no_sti (userprog/syscall-entry.o:?)
+0x0000000000400244: (unknown)
+0x0000000000400fa5: (unknown)
+0x0000000000400fee: (unknown)

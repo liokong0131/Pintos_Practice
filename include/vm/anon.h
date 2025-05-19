@@ -7,7 +7,6 @@ enum vm_type;
 
 struct anon_page {
     disk_sector_t swap_sectors[8];
-    bool is_in_mem;
     struct bitmap *swap_table;
 };
 

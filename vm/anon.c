@@ -42,6 +42,7 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	/* page initialize */
 	struct anon_page *anon_page = &page->anon;
 	page->is_in_mem = true;
+	anon_page->swap_table = swap_table;
 
 	return true;
 }
@@ -51,10 +52,10 @@ static bool
 anon_swap_in (struct page *page, void *kva) {
 	struct anon_page *anon_page = &page->anon;
 
-	printf("disk size : %d\n", disk_size(swap_disk));
-
 	for(int i=0; i<8; i++){
+#ifdef DEBUG
 		printf("sec no : %d\n", anon_page->swap_sectors[i]);
+#endif
 		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
 		bitmap_set(swap_table, anon_page->swap_sectors[i], false);
 	}
@@ -72,7 +73,7 @@ anon_swap_out (struct page *page) {
 	for(int i=0; i<8; i++){
 		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 1, false);
     	if(anon_page->swap_sectors[i] == BITMAP_ERROR){
-			PANIC("(in anon) Swap allocation failed: swap_sectors index %d", i);
+			return false;
 		}
 
 		cache_idx = anon_page->swap_sectors[i];

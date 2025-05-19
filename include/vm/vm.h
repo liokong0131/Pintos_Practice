@@ -53,8 +53,7 @@ struct page {
 
 	struct hash_elem h_elem;
 	bool writable;
-	void *aux;
-
+	bool is_in_mem;
 	/* Per-type data are binded into the union.
 	 * Each function automatically detects the current union */
 	union {
@@ -101,14 +100,13 @@ struct supplemental_page_table {
 
 struct copy_info{
 	struct page *parent_page;
-}
+};
 
 #include "threads/thread.h"
 void supplemental_page_table_init (struct supplemental_page_table *spt);
 bool supplemental_page_table_copy (struct supplemental_page_table *dst,
 		struct supplemental_page_table *src);
 void supplemental_page_table_kill (struct supplemental_page_table *spt);
-void supplemental_page_table_destroy (struct supplemental_page_table *spt);
 struct page *spt_find_page (struct supplemental_page_table *spt,
 		void *va);
 bool spt_insert_page (struct supplemental_page_table *spt, struct page *page);

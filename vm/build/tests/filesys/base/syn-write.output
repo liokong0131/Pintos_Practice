@@ -16,16 +16,62 @@ Putting 'child-syn-wrt' into the file system...
 Executing 'syn-write':
 (syn-write) begin
 (syn-write) create "stuff"
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 96 ticks
-Thread: 46 idle ticks, 47 kernel ticks, 3 user ticks
+(syn-write) exec child 1 of 10: "child-syn-wrt 0"
+(syn-write) exec child 2 of 10: "child-syn-wrt 1"
+(syn-write) exec child 3 of 10: "child-syn-wrt 2"
+(syn-write) exec child 4 of 10: "child-syn-wrt 3"
+(syn-write) exec child 5 of 10: "child-syn-wrt 4"
+(syn-write) exec child 6 of 10: "child-syn-wrt 5"
+(syn-write) exec child 7 of 10: "child-syn-wrt 6"
+(syn-write) exec child 8 of 10: "child-syn-wrt 7"
+(syn-write) exec child 9 of 10: "child-syn-wrt 8"
+(syn-write) exec child 10 of 10: "child-syn-wrt 9"
+child-syn-wrt: exit(0)
+(syn-write) wait for child 1 of 10 returned 0 (expected 0)
+child-syn-wrt: exit(3)
+child-syn-wrt: exit(2)
+child-syn-wrt: exit(6)
+child-syn-wrt: exit(5)
+child-syn-wrt: exit(4)
+child-syn-wrt: exit(8)
+child-syn-wrt: exit(9)
+child-syn-wrt: exit(7)
+child-syn-wrt: exit(1)
+(syn-write) wait for child 2 of 10 returned 1 (expected 1)
+(syn-write) wait for child 3 of 10 returned 2 (expected 2)
+(syn-write) wait for child 4 of 10 returned 3 (expected 3)
+(syn-write) wait for child 5 of 10 returned 4 (expected 4)
+(syn-write) wait for child 6 of 10 returned 5 (expected 5)
+(syn-write) wait for child 7 of 10 returned 6 (expected 6)
+(syn-write) wait for child 8 of 10 returned 7 (expected 7)
+(syn-write) wait for child 9 of 10 returned 8 (expected 8)
+(syn-write) wait for child 10 of 10 returned 9 (expected 9)
+(syn-write) open "stuff"
+(syn-write) read "stuff"
+Page fault at 0x606000: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=80042139c9
+ cr2=0000000000606000 error=               2
+rax 0000000000000100 rbx 000080042420f800 rcx 0000000000000100 rdx 00000000000001f0
+rsp 0000008004244dc8 rbp 0000008004244de0 rsi 0000000000606000 rdi 0000000000606000
+rip 00000080042139c9 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000206 r12 000000800421daae r13 0000800422c40800 r14 00008004244f1000
+r15 0000800420ab3100 rflags 00000212
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042188f6 0x800421d7c9 0x800421d976 0x80042098f2 0x8004209d10 0x8004214bc4 0x8004214028 0x8004220900 0x800421f901 0x800421e091 0x800421dc6a 0x800421d9ed 0x400244 0x400fa5 0x400fee 0Interrupt 0x0d (#GP General Protection Exception) at rip=8004215930
+ cr2=0000000000606000 error=               0
+rax 0000800420bfd300 rbx 000080042420f800 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004244bc0 rbp 0000008004244bd0 rsi 000000000000a40f rdi 0000000000000000
+rip 0000008004215930 r8 0000008004244ad8  r9 000000800421bd6f r10 0000000000000000
+r11 0000000000000206 r12 000000800421daae r13 0000800422c40800 r14 00008004244f1000
+r15 0000800420ab3100 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:97 in kill().
+Timer: 124 ticks
+Thread: 57 idle ticks, 53 kernel ticks, 14 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 131 reads, 512 writes
+hd0:1: 653 reads, 522 writes
 hd1:0: 226 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1321 characters output
+Console: 3818 characters output
 Key

@@ -15,16 +15,20 @@ Putting 'wait-killed' into the file system...
 Putting 'child-bad' into the file system...
 Executing 'wait-killed':
 (wait-killed) begin
-Kernel PANIC at ../../vm/vm.c:61 in vm_alloc_page_with_initializer(): assertion `VM_TYPE(type) != VM_UNINIT' failed.
-Call stack: 0x80042188f6 0x8004221785 0x8004221f9f 0x800421c2c5 0x8004207767.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 93 ticks
-Thread: 44 idle ticks, 48 kernel ticks, 1 user ticks
+(child-bad) begin
+load: pintos: open failed
+child-bad: exit(-1)
+(wait-killed) wait(exec()) = -1
+(wait-killed) end
+wait-killed: exit(0)
+Execution of 'wait-killed' complete.
+Timer: 96 ticks
+Thread: 45 idle ticks, 47 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 107 reads, 448 writes
+hd0:1: 171 reads, 448 writes
 hd1:0: 205 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1296 characters output
-Key
+Console: 1119 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

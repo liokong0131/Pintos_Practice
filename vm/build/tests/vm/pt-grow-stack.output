@@ -26,8 +26,8 @@ r15 0000800420ab3100 rflags 00000202
 es: 001b ds: 001b cs: 0023 ss: 001b
 pt-grow-stack: exit(0)
 Execution of 'pt-grow-stack' complete.
-Timer: 86 ticks
-Thread: 34 idle ticks, 49 kernel ticks, 3 user ticks
+Timer: 85 ticks
+Thread: 38 idle ticks, 44 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 85 reads, 254 writes
 hd1:0: 113 reads, 0 writes

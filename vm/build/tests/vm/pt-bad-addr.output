@@ -26,8 +26,8 @@ r15 0000800420ab3100 rflags 00000212
 es: 001b ds: 001b cs: 0023 ss: 001b
 pt-bad-addr: exit(0)
 Execution of 'pt-bad-addr' complete.
-Timer: 85 ticks
-Thread: 39 idle ticks, 43 kernel ticks, 3 user ticks
+Timer: 84 ticks
+Thread: 36 idle ticks, 45 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 232 writes
 hd1:0: 102 reads, 0 writes

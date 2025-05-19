@@ -30,15 +30,15 @@ file_backed_initializer (struct page *page, enum vm_type type, void *kva) {
 	page->operations = &file_ops;
 
 	struct file_page *file_page = &page->file;
-	struct file_info *f_info = page->aux;
-	file_page->f_info.file = f_info->file;
-	file_page->f_info.offset = f_info->offset;
-	file_page->f_info.read_bytes = f_info->read_bytes;
-	file_page->f_info.zero_bytes = f_info->zero_bytes;
+	// struct file_info *f_info = page->aux;
+	// file_page->f_info.file = f_info->file;
+	// file_page->f_info.offset = f_info->offset;
+	// file_page->f_info.read_bytes = f_info->read_bytes;
+	// file_page->f_info.zero_bytes = f_info->zero_bytes;
 
-	free(f_info);
+	// free(f_info);
 
-	file_page->is_in_mem = true;
+	// file_page->is_in_mem = true;
 
 	return true;
 }

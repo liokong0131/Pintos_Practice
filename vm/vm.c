@@ -72,11 +72,6 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 			goto err;
 		}
 
-		if(type & VM_COPY){
-			if(init == NULL){
-				goto insert;
-			}
-		}
 		//else if(type & VM_STACK){}
 
 		switch(VM_TYPE(type)){
@@ -196,6 +191,7 @@ vm_get_frame (void) {
 /* Growing the stack. */
 static void
 vm_stack_growth (void *addr) {
+	vm_alloc_page(VM_ANON | VM_STACK, addr, true);
 }
 
 /* Handle the fault on write_protected page */
@@ -212,10 +208,14 @@ vm_try_handle_fault (struct intr_frame *f, void *addr,
 	/* TODO: Validate the fault */
 	/* TODO: Your code goes here */
 
-	if(!user || addr == NULL)
+	if(is_kernel_vaddr(addr) || !user || addr == NULL)
 		return false;
 
 	if(not_present){
+		if (USER_STACK - 1<<20 <= addr  && addr < USER_STACK && f->rsp == addr) {
+			vm_stack_growth (pg_round_down(addr));
+		}
+
 		if((page = spt_find_page(spt, addr)) == NULL)
 			return false;
 		
@@ -289,11 +289,9 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 
 		switch(VM_TYPE (parent_page->operations->type)){
 		case VM_UNINIT:
-			if (!vm_alloc_page(VM_ANON | VM_COPY, parent_page->va, parent_page->writable)) {
+			if (!vm_alloc_page_with_initializer(page_get_type(parent_page) | VM_COPY, parent_page->va, parent_page->writable, parent_page->uninit.init, parent_page->uninit.aux)) {
 				return false;
 			}
-			struct page *child_page = spt_find_page(dst, parent_page->va);
-			memcpy(child_page, parent_page, sizeof(struct page));
 			break;
 		case VM_ANON:{
 			struct copy_info *c_info = (struct copy_info *)malloc(sizeof(struct copy_info));
@@ -304,7 +302,6 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 				return false;
 			}
 			struct page *child_page = spt_find_page(dst, parent_page->va);
-			memcpy(child_page, parent_page, sizeof(struct page));
 			if(!vm_claim_page(parent_page->va)) {
 				free(c_info);
 				return false;
@@ -361,6 +358,7 @@ page_copy (struct page *page, void *aux){
 		struct frame *child_frame = page->frame;
 		memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
 		child_frame->ref_cnt = parent_page->frame->ref_cnt;
+		page->is_in_mem = true;
 	}else{
 		struct anon_page *anon_parent_page = &parent_page->anon;
 		struct anon_page *anon_child_page = &page->anon;
@@ -381,6 +379,7 @@ page_copy (struct page *page, void *aux){
 			disk_write(swap_disk, cache_idx, buffer);
 		}
 		free(buffer);
+		page->is_in_mem = false;
 	}
 	
 	return true;

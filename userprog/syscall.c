@@ -132,6 +132,12 @@ syscall_handler (struct intr_frame *if_ UNUSED) {
 	case SYS_DUP2:
 		if_->R.rax = dup2(if_->R.rdi, if_->R.rsi);
 		break;
+	case SYS_MMAP:
+		if_->R.rax = mmap(if_->R.rdi, if_->R.rsi);
+		break;
+	case SYS_MUNMAP:
+		munmap(if_->R.rdi);
+		break;
 	default:
 		exit(-1); break;
 	}
@@ -273,6 +279,15 @@ void close (int fd){
 int dup2(int oldfd, int newfd){
 	return;
 }
+
+void *mmap(int fd, void *addr){
+
+}
+
+void munmap(){
+
+}
+
 
 int insert_file_to_fdt(struct file *file){
 	struct thread *curThread = thread_current ();
