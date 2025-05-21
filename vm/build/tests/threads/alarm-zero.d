@@ -11,5 +11,5 @@ tests/threads/alarm-zero.o: ../../tests/threads/alarm-zero.c \
  ../../include/vm/anon.h ../../include/devices/disk.h \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/lib/kernel/bitmap.h ../../include/devices/timer.h \
- ../../include/lib/round.h
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
+ ../../include/devices/timer.h ../../include/lib/round.h

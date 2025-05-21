@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 337 sector (168 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 345 sector (172 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 224 sector (112 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -24,42 +24,29 @@ child-qsort: exit(-1)
 load: child-qsort: open failed
 child-qsort: exit(-1)
 (page-merge-stk) sort chunk 3
-load: child-qsort: open failed
-child-qsort: exit(-1)
-(page-merge-stk) sort chunk 4
-load: child-qsort: open failed
-child-qsort: exit(-1)
-(page-merge-stk) sort chunk 5
-load: child-qsort: open failed
-child-qsort: exit(-1)
-(page-merge-stk) sort chunk 6
-load: child-qsort: open failed
-child-qsort: exit(-1)
-(page-merge-stk) sort chunk 7
-load: child-qsort: open failed
-child-qsort: exit(-1)
-(page-merge-stk) wait for child 0
-(page-merge-stk) wait for child 0: FAILED
-page-merge-stk: exit(1)
-Page fault at 0x4745ff8c: not present error writing page in user context.
-child-qsort: dying due to interrupt 0x0e (#PF Page-Fault Exception).
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=4000f3
- cr2=000000004745ff8c error=               6
-rax 00000000004000e8 rbx 0000004747feb0ff rcx ffffffffffffff00 rdx 000000004747ffd0
-rsp 000000004745ff80 rbp 000000004747ffa0 rsi 000000004747ffd0 rdi 0000000000000002
-rip 00000000004000f3 r8 00000004272e8000  r9 0000800422c40800 r10 00008004272e6000
-r11 0000800420ab3100 r12 00008004272e6000 r13 0000010424400000 r14 00008004272e6000
-r15 00008004208a6500 rflags 00000202
-es: 001b ds: 001b cs: 0023 ss: 001b
-child-qsort: exit(0)
-Execution of 'page-merge-stk' complete.
-Timer: 300 ticks
-Thread: 126 idle ticks, 57 kernel ticks, 117 user ticks
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=80042139c9
+ cr2=0000000047460000 error=               2
+rax 0000000000000100 rbx 0000004747feb0ff rcx 00000000000000c8 rdx 00000000000001f0
+rsp 000000800426edc8 rbp 000000800426ede0 rsi 000000004745ff90 rdi 0000000047460000
+rip 00000080042139c9 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000202 r12 000000800421dae8 r13 0000010424500000 r14 0000800426ee6000
+r15 00008004208a6500 rflags 00000212
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:98 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042188f6 0x800421d884 0x800421d9b0 0x80042098f2 0x8004209d10 0x8004214bc4 0x8004214028 0x8004220b2d 0x800421fb2e 0x800421e13d 0x800421dca4 0x800421da27 0x4001ab 0x4010af 0Interrupt 0x0d (#GP General Protection Exception) at rip=8004215930
+ cr2=0000000047460000 error=               0
+rax 0000800420b07e00 rbx 0000004747feb0ff rcx 00000080040b8000 rdx 00000000000003d4
+rsp 000000800426ebc0 rbp 000000800426ebd0 rsi 0000000000009b0f rdi 0000000000000000
+rip 0000008004215930 r8 000000800426ead8  r9 000000800421bd6f r10 0000000000000000
+r11 0000000000000202 r12 000000800421dae8 r13 0000010424500000 r14 0000800426ee6000
+r15 00008004208a6500 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:98 in kill().
+Timer: 182 ticks
+Thread: 75 idle ticks, 50 kernel ticks, 57 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 415 reads, 4678 writes
+hd0:1: 240 reads, 2058 writes
 hd1:0: 224 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 2418 characters output
-Keyboard: 0 keys pressed
-Exception: 1 page faults
-Powering off...
+Console: 2607 characters output
+Key

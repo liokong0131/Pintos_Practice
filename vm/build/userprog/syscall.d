@@ -11,8 +11,9 @@ userprog/syscall.o: ../../userprog/syscall.c \
  ../../include/vm/anon.h ../../include/devices/disk.h \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/lib/kernel/bitmap.h ../../include/threads/loader.h \
- ../../include/userprog/gdt.h ../../include/threads/flags.h \
- ../../include/intrinsic.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/userprog/process.h ../../include/filesys/filesys.h
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
+ ../../include/threads/loader.h ../../include/userprog/gdt.h \
+ ../../include/threads/flags.h ../../include/intrinsic.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/userprog/process.h \
+ ../../include/filesys/filesys.h

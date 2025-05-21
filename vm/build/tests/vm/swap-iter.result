@@ -1,18 +1,18 @@
 FAIL
-Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x80042188f6 0x800421d7c9 0x80042098f2 0x8004209d10 0x8004222278 0x800421aec4 0x80042221b3 0x800421c7b0 0x800421c74c 0x80042072eb 0x800421d781 0x800421d976 0x80042098f2 0x8004209d10
+Kernel panic in run: PANIC at ../../devices/disk.c:411 in select_sector(): assertion `sec_no < d->capacity' failed.
+Call stack: 0x80042188f6 0x80042149cf 0x8004213f83 0x8004222da1 0x800422220a 0x8004222079 0x800421d97b 0x80042098f2 0x8004209d10
 Translation of call stack:
 0x00000080042188f6: debug_panic (lib/kernel/debug.c:32)
-0x000000800421d7c9: kill (userprog/exception.c:103)
+0x00000080042149cf: select_sector (devices/disk.c:412)
+0x0000008004213f83: disk_read (devices/disk.c:220)
+0x0000008004222da1: anon_swap_in (vm/anon.c:60 (discriminator 3))
+0x000000800422220a: vm_do_claim_page (vm/vm.c:278)
+0x0000008004222079: vm_try_handle_fault (vm/vm.c:233)
+0x000000800421d97b: page_fault (userprog/exception.c:152)
 0x00000080042098f2: intr_handler (threads/interrupt.c:352)
 0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)
-0x0000008004222278: spte_destroy (vm/vm.c:347)
-0x000000800421aec4: hash_clear (lib/kernel/hash.c:58)
-0x00000080042221b3: supplemental_page_table_kill (vm/vm.c:325)
-0x000000800421c7b0: process_cleanup (userprog/process.c:354)
-0x000000800421c74c: process_exit (userprog/process.c:337)
-0x00000080042072eb: thread_exit (threads/thread.c:307)
-0x000000800421d781: kill (userprog/exception.c:96)
-0x000000800421d976: page_fault (userprog/exception.c:164 (discriminator 12))
-0x00000080042098f2: intr_handler (threads/interrupt.c:352)
-0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)
+
+This assertion commonly fails when accessing a file via an inode that
+has been closed and freed.  Freeing an inode clears all its sector
+indexes to 0xcccccccc, which is not a valid sector number for disks
+smaller than about 1.6 TB.

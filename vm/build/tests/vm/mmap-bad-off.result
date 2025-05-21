@@ -1,16 +1,13 @@
 FAIL
-Test output failed to match any acceptable form.
-
-Acceptable output:
-  (mmap-bad-off) begin
-  (mmap-bad-off) open "large.txt"
-  (mmap-bad-off) try to mmap invalid offset
-  (mmap-bad-off) end
-  mmap-bad-off: exit(0)
-Differences in `diff -u' format:
-  (mmap-bad-off) begin
-  (mmap-bad-off) open "large.txt"
-  (mmap-bad-off) try to mmap invalid offset
-- (mmap-bad-off) end
-- mmap-bad-off: exit(0)
-+ mmap-bad-off: exit(-1)
+Kernel panic in run: PANIC at ../../vm/file.c:145 in mmap_segment(): assertion `ofs % PGSIZE == 0' failed.
+Call stack: 0x80042188f6 0x800422354d 0x8004223203 0x800421e46e 0x800421ddcb 0x800421da27 0x400186 0x400c5c 0x400ca5
+Translation of call stack:
+0x00000080042188f6: debug_panic (lib/kernel/debug.c:32)
+0x000000800422354d: mmap_segment (vm/file.c:147)
+0x0000008004223203: do_mmap (vm/file.c:98)
+0x000000800421e46e: mmap (userprog/syscall.c:266)
+0x000000800421ddcb: syscall_handler (userprog/syscall.c:139)
+0x000000800421da27: no_sti (userprog/syscall-entry.o:?)
+0x0000000000400186: (unknown)
+0x0000000000400c5c: (unknown)
+0x0000000000400ca5: (unknown)

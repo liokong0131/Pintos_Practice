@@ -10,4 +10,4 @@ threads/synch.o: ../../threads/synch.c ../../include/threads/synch.h \
  ../../include/vm/anon.h ../../include/devices/disk.h \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/lib/kernel/bitmap.h
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h

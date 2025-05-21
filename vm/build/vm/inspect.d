@@ -8,6 +8,7 @@ vm/inspect.o: ../../vm/inspect.c ../../include/threads/interrupt.h \
  ../../include/vm/anon.h ../../include/devices/disk.h \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/lib/kernel/bitmap.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/threads/loader.h ../../include/vm/inspect.h
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/threads/loader.h \
+ ../../include/vm/inspect.h

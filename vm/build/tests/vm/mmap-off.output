@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 337 sector (168 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 345 sector (172 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 7,933 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -15,25 +15,28 @@ Putting 'mmap-off' into the file system...
 Putting 'large.txt' into the file system...
 Executing 'mmap-off':
 (mmap-off) begin
-Page fault at 0x4747ef78: not present error writing page in user context.
-mmap-off: dying due to interrupt 0x0e (#PF Page-Fault Exception).
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=40010c
- cr2=000000004747ef78 error=               6
-rax 0000000000000000 rbx 000080042420f800 rcx 00000000000000ff rdx 0000000000400646
-rsp 000000004747ef80 rbp 000000004747ff90 rsi 00000000007ef56e rdi 00000000004046f0
-rip 000000000040010c r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000206 r12 00000004244f3000 r13 0000800422c40800 r14 00008004244f1000
-r15 0000800420ab3100 rflags 00000202
-es: 001b ds: 001b cs: 0023 ss: 001b
-mmap-off: exit(0)
+(mmap-off) open "large.txt"
+(mmap-off) try to mmap with offset 0x1000
+(mmap-off) validate mmap.
+(mmap-off) validated.
+(mmap-off) write to mmap
+(mmap-off) validate contents.
+(mmap-off) open "large.txt"
+(mmap-off) read "large.txt" Page 0
+(mmap-off) validate page 0.
+(mmap-off) validated.
+(mmap-off) read "large.txt" Page 1
+(mmap-off) validate page 1.
+(mmap-off) validate fail.: FAILED
+mmap-off: exit(1)
 Execution of 'mmap-off' complete.
-Timer: 672 ticks
-Thread: 468 idle ticks, 200 kernel ticks, 4 user ticks
+Timer: 675 ticks
+Thread: 463 idle ticks, 206 kernel ticks, 6 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 108 reads, 15904 writes
+hd0:1: 165 reads, 15904 writes
 hd1:0: 7933 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1639 characters output
+Console: 1373 characters output
 Keyboard: 0 keys pressed
-Exception: 1 page faults
+Exception: 0 page faults
 Powering off...

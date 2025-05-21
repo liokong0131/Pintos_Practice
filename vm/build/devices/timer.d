@@ -11,4 +11,4 @@ devices/timer.o: ../../devices/timer.c ../../include/devices/timer.h \
  ../../include/vm/uninit.h ../../include/vm/anon.h \
  ../../include/devices/disk.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/lib/kernel/bitmap.h
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h
