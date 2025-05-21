@@ -16,15 +16,18 @@ Putting 'sample.txt' into the file system...
 Executing 'pt-bad-read':
 (pt-bad-read) begin
 (pt-bad-read) open "sample.txt"
-pt-bad-read: exit(-1)
+(pt-bad-read) 4747ef8c
+
+(pt-bad-read) survived reading data into bad address: FAILED
+pt-bad-read: exit(1)
 Execution of 'pt-bad-read' complete.
-Timer: 86 ticks
-Thread: 39 idle ticks, 44 kernel ticks, 3 user ticks
+Timer: 85 ticks
+Thread: 40 idle ticks, 44 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 111 reads, 250 writes
+hd0:1: 112 reads, 250 writes
 hd1:0: 106 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1039 characters output
+Console: 1123 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

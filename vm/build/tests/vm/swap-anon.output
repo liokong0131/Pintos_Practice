@@ -20,12 +20,12 @@ Executing 'swap-anon':
 (swap-anon) write sparsely over page 1536
 (swap-anon) write sparsely over page 2048
 Kernel PANIC at ../../devices/disk.c:411 in select_sector(): assertion `sec_no < d->capacity' failed.
-Call stack: 0x80042188f6 0x80042149cf 0x8004213f83 0x8004222da1 0x800422220a 0x8004222079 0x800421d97b 0x80042098f2 0x8004209d10.
+Call stack: 0x80042188f6 0x80042149cf 0x8004213f83 0x8004222f19 0x8004222351 0x800422217a 0x800421d97b 0x80042098f2 0x8004209d10.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
-Timer: 477 ticks
-Thread: 167 idle ticks, 44 kernel ticks, 266 user ticks
+Timer: 478 ticks
+Thread: 181 idle ticks, 47 kernel ticks, 250 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 236 writes
 hd1:0: 104 reads, 0 writes

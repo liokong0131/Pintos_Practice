@@ -26,7 +26,8 @@ child-qsort-mm: exit(-1)
 (page-merge-mm) sort chunk 3
 child-qsort-mm: exit(80)
 (page-merge-mm) sort chunk 4
-child-qsort-mm: exit(80)
+load: child-qsort-mm: open failed
+child-qsort-mm: exit(-1)
 (page-merge-mm) sort chunk 5
 load: child-qsort-mm: open failed
 child-qsort-mm: exit(-1)
@@ -41,13 +42,13 @@ child-qsort-mm: exit(-1)
 page-merge-mm: exit(1)
 child-qsort-mm: exit(80)
 Execution of 'page-merge-mm' complete.
-Timer: 348 ticks
-Thread: 136 idle ticks, 58 kernel ticks, 154 user ticks
+Timer: 327 ticks
+Thread: 132 idle ticks, 59 kernel ticks, 136 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 1282 reads, 4678 writes
+hd0:1: 987 reads, 4678 writes
 hd1:0: 224 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1733 characters output
+Console: 1766 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

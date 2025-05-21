@@ -30,8 +30,8 @@ Executing 'mmap-off':
 (mmap-off) validate fail.: FAILED
 mmap-off: exit(1)
 Execution of 'mmap-off' complete.
-Timer: 675 ticks
-Thread: 463 idle ticks, 206 kernel ticks, 6 user ticks
+Timer: 666 ticks
+Thread: 441 idle ticks, 218 kernel ticks, 7 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 165 reads, 15904 writes
 hd1:0: 7933 reads, 0 writes

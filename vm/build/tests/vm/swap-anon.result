@@ -1,13 +1,13 @@
 FAIL
 Kernel panic in run: PANIC at ../../devices/disk.c:411 in select_sector(): assertion `sec_no < d->capacity' failed.
-Call stack: 0x80042188f6 0x80042149cf 0x8004213f83 0x8004222da1 0x800422220a 0x8004222079 0x800421d97b 0x80042098f2 0x8004209d10
+Call stack: 0x80042188f6 0x80042149cf 0x8004213f83 0x8004222f19 0x8004222351 0x800422217a 0x800421d97b 0x80042098f2 0x8004209d10
 Translation of call stack:
 0x00000080042188f6: debug_panic (lib/kernel/debug.c:32)
 0x00000080042149cf: select_sector (devices/disk.c:412)
 0x0000008004213f83: disk_read (devices/disk.c:220)
-0x0000008004222da1: anon_swap_in (vm/anon.c:60 (discriminator 3))
-0x000000800422220a: vm_do_claim_page (vm/vm.c:278)
-0x0000008004222079: vm_try_handle_fault (vm/vm.c:233)
+0x0000008004222f19: anon_swap_in (vm/anon.c:60 (discriminator 3))
+0x0000008004222351: vm_do_claim_page (vm/vm.c:298)
+0x000000800422217a: vm_try_handle_fault (vm/vm.c:252)
 0x000000800421d97b: page_fault (userprog/exception.c:152)
 0x00000080042098f2: intr_handler (threads/interrupt.c:352)
 0x0000008004209d10: intr_entry (threads/intr-stubs.o:?)

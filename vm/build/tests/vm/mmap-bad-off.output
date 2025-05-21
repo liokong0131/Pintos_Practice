@@ -18,17 +18,17 @@ Executing 'mmap-bad-off':
 (mmap-bad-off) open "large.txt"
 (mmap-bad-off) try to mmap invalid offset
 Kernel PANIC at ../../vm/file.c:145 in mmap_segment(): assertion `ofs % PGSIZE == 0' failed.
-Call stack: 0x80042188f6 0x800422354d 0x8004223203 0x800421e46e 0x800421ddcb 0x800421da27 0x400186 0x400c5c 0x400ca5 0Interrupt 0x0d (#GP General Protection Exception) at rip=8004215930
+Call stack: 0x80042188f6 0x80042236c5 0x800422337b 0x800421e4a8 0x800421dded 0x800421da27 0x400186 0x400c5c 0x400ca5 0Interrupt 0x0d (#GP General Protection Exception) at rip=8004215930
  cr2=00000000004037bc error=               0
-rax 0000800420bfd300 rbx 0000800424317800 rcx 00000080040b8000 rdx 00000000000003d4
-rsp 0000008004245da0 rbp 0000008004245db0 rsi 000000000000a60f rdi 0000000000000000
-rip 0000008004215930 r8 0000008004245cb8  r9 000000800421bd6f r10 0000000000000002
+rax 0000800420bfd300 rbx 000000004747ff10 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004245d90 rbp 0000008004245da0 rsi 000000000000a60f rdi 0000000000000000
+rip 0000008004215930 r8 0000008004245ca8  r9 000000800421bd6f r10 0000000000000002
 r11 0000000000000202 r12 000000800421dae8 r13 0000800422d40800 r14 00008004245f1000
 r15 0000800420ab3100 rflags 00000006
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC recursion at ../../userprog/exception.c:98 in kill().
-Timer: 375 ticks
-Thread: 247 idle ticks, 125 kernel ticks, 3 user ticks
+Timer: 367 ticks
+Thread: 239 idle ticks, 125 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 8072 writes
 hd1:0: 4017 reads, 0 writes
