@@ -24,6 +24,8 @@ typedef int pid_t;
 
 void check_valid_uaddr(const uint64_t *addr);
 bool is_valid_fd(int fd, enum syscall_status stat);
+bool is_valid_uaddr(const uint64_t *addr);
+void check_writable_addr(const uint64_t *addr);
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
@@ -44,6 +46,8 @@ void seek (int fd, unsigned position);
 unsigned tell (int fd);
 void close (int fd);
 int dup2(int oldfd, int newfd);
+void *mmap (void *addr, size_t length, int writable, int fd, off_t offset);
+void munmap (void *addr);
 
 /* System call.
  *
@@ -73,7 +77,7 @@ syscall_init (void) {
 
 /* The main system call interface */
 void
-syscall_handler (struct intr_frame *if_ UNUSED) {
+syscall_handler (struct intr_frame *if_) {
 	// TODO: Your implementation goes here.
 	// printf ("system call!\n");
 	// thread_exit ();
@@ -88,7 +92,7 @@ syscall_handler (struct intr_frame *if_ UNUSED) {
 	*/
 	char *fn_copy;
 	int size;
-	
+	thread_current()->user_rsp = if_->rsp;
 	switch (if_->R.rax) {
 	case SYS_HALT:
 		halt(); break;
@@ -99,6 +103,9 @@ syscall_handler (struct intr_frame *if_ UNUSED) {
 		break;
 	case SYS_EXEC:
 		if (exec(if_->R.rdi) == -1)
+#ifdef DEBUG
+			printf("exec value is -1\n");
+#endif
 			exit(-1);
 		break;
 	case SYS_WAIT:
@@ -133,7 +140,7 @@ syscall_handler (struct intr_frame *if_ UNUSED) {
 		if_->R.rax = dup2(if_->R.rdi, if_->R.rsi);
 		break;
 	case SYS_MMAP:
-		if_->R.rax = mmap(if_->R.rdi, if_->R.rsi);
+		if_->R.rax = mmap(if_->R.rdi, if_->R.rsi, if_->R.rdx, if_->R.r10, if_->R.r8);
 		break;
 	case SYS_MUNMAP:
 		munmap(if_->R.rdi);
@@ -162,9 +169,12 @@ int exec (const char *cmd_line){
 	check_valid_uaddr(cmd_line);
 
 	char *fn_copy;
-	if((fn_copy = palloc_get_page(0)) == NULL)
+	if((fn_copy = palloc_get_page(0)) == NULL){
+#ifdef DEBUG
+		printf("exec fn_copy NULL\n");
+#endif
 		exit(-1);
-
+	}
 	strlcpy(fn_copy, cmd_line, PGSIZE);
 
 	return process_exec(fn_copy);
@@ -191,11 +201,6 @@ int open (const char *file){
 	if ((fd = insert_file_to_fdt(open_file)) == -1)
 		file_close(open_file);
 
-	//file_deny_write(open_file);
-#ifdef DEBUG
-	//printf("(open) fd: %d\n", fd);
-#endif
-
 	return fd;
 }
 int filesize (int fd){
@@ -206,12 +211,10 @@ int filesize (int fd){
 	return file_length (file);
 }
 int read (int fd, void *buffer, unsigned length){
-
-#ifdef DEBUG
-	//printf("\n\n(read) fd: %d\n\n", fd);
-#endif
 	check_valid_uaddr(buffer);
+	check_writable_addr(buffer);
 	if(!is_valid_fd (fd, READ)) return -1;
+	
 	struct thread *curThread = thread_current ();
 	if(fd == 0){
 		return input_getc();
@@ -222,33 +225,16 @@ int read (int fd, void *buffer, unsigned length){
 	}
 }
 int write (int fd, const void *buffer, unsigned length){
-
-#ifdef DEBUG
-	printf("\n(write) fd, buffer : %d, %s\n", fd, buffer);
-#endif
-
 	check_valid_uaddr(buffer);
-
-#ifdef DEBUG
-	//printf("\n(write) after check uaddr\n");
-#endif
-
 	if(!is_valid_fd (fd, WRITE)) return -1;
 
 	struct thread *curThread = thread_current ();
-
-
 
 	if(fd == 1){
 		putbuf(buffer, length);
 		return length;
 	}else{
 		struct file *file = curThread->fdt[fd];
-		//file_allow_write(file);
-#ifdef DEBUG
-		//printf("\n(write) writable : %d\n", file->deny_write);
-#endif
-
 		return file_write(file, buffer, length);
 	}
 }
@@ -280,21 +266,21 @@ int dup2(int oldfd, int newfd){
 	return;
 }
 
-void *mmap(int fd, void *addr){
-
+void *mmap (void *addr, size_t length, int writable, int fd, off_t offset){
+	if(!is_valid_fd(fd, OTHERS)) return NULL;
+	if(!is_valid_uaddr(addr)) return NULL;
+	if(length == 0) return NULL;
+	return do_mmap(addr, length, writable, thread_current()->fdt[fd], offset);
 }
 
-void munmap(){
-
+void munmap(void *addr){
+	if(!is_valid_uaddr(addr)) return;
+	do_munmap(addr);
 }
 
 
 int insert_file_to_fdt(struct file *file){
 	struct thread *curThread = thread_current ();
-
-#ifdef DEBUG
-	//printf("(iff) fdt_size & name: %d, %s\n", curThread->fdt_cur, curThread->name);
-#endif
 
 	while(curThread->fdt_cur < FDT_LIMIT && curThread->fdt[curThread->fdt_cur] != NULL){
 		curThread->fdt_cur++;
@@ -309,8 +295,29 @@ int insert_file_to_fdt(struct file *file){
   	return curThread->fdt_cur;
 }
 void check_valid_uaddr(const uint64_t *addr){
-	if (addr == NULL || !is_user_vaddr(addr) || pml4_get_page(thread_current()->pml4, addr) == NULL)
+	struct thread *curThread = thread_current();
+	if (addr == NULL || !is_user_vaddr(addr)){
+#ifdef DEBUG
+		printf("addr is NULL or addr is kernel\n");
+#endif
     	exit(-1);
+	}
+	if(pml4_get_page(curThread->pml4, addr) == NULL){
+		struct page *page = spt_find_page(&curThread->spt, pg_round_down(addr));
+		if(page == NULL){
+			if(is_in_USER_STACK(addr) && curThread->user_rsp - 8 <= addr) return;
+#ifdef DEBUG
+			printf("no mapping and no page\n");
+#endif
+			exit(-1);
+		}
+	}
+}
+
+bool is_valid_uaddr(const uint64_t *addr){
+	if (addr == NULL || !is_user_vaddr(addr) || addr != pg_round_down(addr))
+    	return false;
+	return true;
 }
 
 bool is_valid_fd(int fd, enum syscall_status stat){
@@ -320,4 +327,16 @@ bool is_valid_fd(int fd, enum syscall_status stat){
 	else if (stat == WRITE && fd == 1) return true;
 	else if (stat == READ && fd == 0 ) return true;
 	else return false;
+}
+
+void check_writable_addr(const uint64_t *addr){
+	struct page *page = spt_find_page(&thread_current()->spt, addr);
+	if(page == NULL){
+		return;
+	}
+	if(!page->writable)
+#ifdef DEBUG
+		printf("no writable\n");
+#endif
+		exit(-1);
 }

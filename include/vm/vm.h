@@ -19,7 +19,7 @@ enum vm_type {
 	 * markers, until the value is fit in the int. */
 	VM_COPY = (1 << 3),
 	VM_STACK = (1 << 4),
-
+	VM_FILE_INFO = (1 << 5),
 	/* DO NOT EXCEED THIS VALUE. */
 	VM_MARKER_END = (1 << 31),
 };
@@ -54,6 +54,8 @@ struct page {
 	struct hash_elem h_elem;
 	bool writable;
 	bool is_in_mem;
+	struct file_info *f_info;
+	void *aux;
 	/* Per-type data are binded into the union.
 	 * Each function automatically detects the current union */
 	union {
@@ -123,5 +125,6 @@ bool vm_alloc_page_with_initializer (enum vm_type type, void *upage,
 void vm_dealloc_page (struct page *page);
 bool vm_claim_page (void *va);
 enum vm_type page_get_type (struct page *page);
+bool is_in_USER_STACK(void *uaddr);
 
 #endif  /* VM_VM_H */

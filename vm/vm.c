@@ -9,13 +9,16 @@
 #include "threads/synch.h"
 //#define VM
 
+#define MAX_STACK_SIZE (1 << 20)
+
 static struct list frame_table;
 static struct lock spt_lock;
 /* my implement functions */
 unsigned page_hash_create(const struct hash_elem *e, void *aux UNUSED);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux UNUSED);
 static void spte_destroy(struct hash_elem *e, void *aux UNUSED);
-static bool page_copy (struct page *page, void *aux);
+static bool anon_page_copy (struct page *page, void *aux);
+static bool file_page_copy (struct page *page, void *aux);
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
 void
@@ -71,8 +74,7 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 		if(page == NULL){
 			goto err;
 		}
-
-		//else if(type & VM_STACK){}
+		page->f_info = NULL;
 
 		switch(VM_TYPE(type)){
 		case VM_ANON:
@@ -85,8 +87,17 @@ vm_alloc_page_with_initializer (enum vm_type type, void *upage, bool writable,
 			goto err;
 		}
 
-insert:
 		page->writable = writable;
+		page->aux = NULL;
+
+		if(type & VM_FILE_INFO){
+			page->f_info = (struct file_info *)aux;
+		}
+		
+		// if(type & VM_STACK){
+		// 	struct intr_frame *f = &thread_current()->tf;
+		// 	f->rsp -= PGSIZE;
+		// }
 
 		/* TODO: Insert the page into the spt. */
 		if (!spt_insert_page(spt, page)) {
@@ -127,7 +138,6 @@ void
 spt_remove_page (struct supplemental_page_table *spt, struct page *page) {
 	hash_delete(&spt->hash_table, &page->h_elem);
 	vm_dealloc_page (page);
-	return true;
 }
 
 /* Get the struct frame, that will be evicted. */
@@ -176,7 +186,9 @@ vm_get_frame (void) {
 	if(frame->kva == NULL){
 		struct frame *victim = vm_evict_frame();
 		frame->kva = victim->kva;
+		pml4_clear_page(thread_current()->pml4, victim->page->va);
 		memset(frame->kva, 0, PGSIZE);
+		list_remove(&victim->l_elem);
 		free(victim);
 	}
 
@@ -190,9 +202,22 @@ vm_get_frame (void) {
 
 /* Growing the stack. */
 static void
-vm_stack_growth (void *addr) {
+vm_stack_growth (void *addr, void *rsp) {
 	vm_alloc_page(VM_ANON | VM_STACK, addr, true);
 }
+// static void
+// vm_stack_growth (void *addr, void *rsp) {
+// 	struct thread *curThread = thread_current();
+// 	void *a = addr;
+// 	while(a <= pg_round_down(rsp)){
+// 		if(spt_find_page(&curThread->spt, a) == NULL){
+// 			vm_alloc_page(VM_ANON | VM_STACK, a, true);
+// 			vm_do_claim_page (spt_find_page(&curThread->spt, a));
+// 		}
+// 		printf("%p\n", a);
+// 		a += PGSIZE;
+// 	}
+// }
 
 /* Handle the fault on write_protected page */
 static bool
@@ -208,21 +233,22 @@ vm_try_handle_fault (struct intr_frame *f, void *addr,
 	/* TODO: Validate the fault */
 	/* TODO: Your code goes here */
 
-	if(is_kernel_vaddr(addr) || !user || addr == NULL)
+#ifdef DEBUG
+	printf("addr : %p, %d, %d, %d\n", addr, user, write, not_present);
+#endif
+	if(is_kernel_vaddr(addr) || addr == NULL)
 		return false;
-
 	if(not_present){
-		if (USER_STACK - 1<<20 <= addr  && addr < USER_STACK && f->rsp == addr) {
-			vm_stack_growth (pg_round_down(addr));
+		void *user_rsp = user ? f->rsp : thread_current()->user_rsp;
+		if (is_in_USER_STACK(addr) && user_rsp - 8 <= addr) {
+			vm_stack_growth (pg_round_down(addr), user_rsp);
 		}
-
-		if((page = spt_find_page(spt, addr)) == NULL)
+		if((page = spt_find_page(spt, addr)) == NULL){
 			return false;
-		
+		}
 		if (write && !page->writable) {
 			return false;
 		}
-
 		return vm_do_claim_page (page);
 	}
 	
@@ -252,8 +278,8 @@ vm_claim_page (void *va) {
 /* Claim the PAGE and set up the mmu. */
 static bool
 vm_do_claim_page (struct page *page) {
+	ASSERT(page != NULL);
 	struct frame *frame = vm_get_frame ();
-
 	/* Set links */
 	frame->page = page;
 	page->frame = frame;
@@ -268,7 +294,6 @@ vm_do_claim_page (struct page *page) {
 		free(frame);
 		return false;
 	}
-
 	return swap_in (page, frame->kva);
 }
 
@@ -292,12 +317,37 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 			if (!vm_alloc_page_with_initializer(page_get_type(parent_page) | VM_COPY, parent_page->va, parent_page->writable, parent_page->uninit.init, parent_page->uninit.aux)) {
 				return false;
 			}
+			struct page *child_page = spt_find_page(dst, parent_page->va);
+			if(parent_page->f_info != NULL){
+				child_page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
+				child_page->f_info->file = parent_page->f_info->file;
+				child_page->f_info->offset = parent_page->f_info->offset;
+				child_page->f_info->read_bytes = parent_page->f_info->read_bytes;
+				child_page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
+			}
 			break;
 		case VM_ANON:{
 			struct copy_info *c_info = (struct copy_info *)malloc(sizeof(struct copy_info));
 			c_info->parent_page = parent_page;
 			void *aux = c_info;
-			if (!vm_alloc_page_with_initializer(VM_ANON | VM_COPY, parent_page->va, parent_page->writable, page_copy, aux)){
+			if (!vm_alloc_page_with_initializer(VM_ANON, parent_page->va, parent_page->writable, anon_page_copy, aux)){
+				free(c_info);
+				return false;
+			}
+			
+			struct page *child_page = spt_find_page(dst, parent_page->va);
+			if(!vm_claim_page(parent_page->va)) {
+				free(c_info);
+				return false;
+			}
+			free(c_info);
+			break;
+		}
+		case VM_FILE:{
+			struct copy_info *c_info = (struct copy_info *)malloc(sizeof(struct copy_info));
+			c_info->parent_page = parent_page;
+			void *aux = c_info;
+			if (!vm_alloc_page_with_initializer(VM_FILE, parent_page->va, parent_page->writable, file_page_copy, aux)){
 				free(c_info);
 				return false;
 			}
@@ -307,8 +357,8 @@ supplemental_page_table_copy (struct supplemental_page_table *dst,
 				return false;
 			}
 			free(c_info);
+			break;
 		}
-		case VM_FILE:
 		default:
 			break;
 		}
@@ -346,13 +396,23 @@ spte_destroy(struct hash_elem *e, void *aux UNUSED){
 		list_remove(&page->frame->l_elem);
 		free(page->frame);
 	}
+	if(page->f_info != NULL)
+		free(page->f_info);
 	vm_dealloc_page(page);
 }
 
 static bool
-page_copy (struct page *page, void *aux){
+anon_page_copy (struct page *page, void *aux){
 	struct copy_info *c_info = (struct copy_info *)aux;
 	struct page *parent_page = c_info->parent_page;
+
+	if(parent_page->f_info != NULL){
+		page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
+		page->f_info->file = parent_page->f_info->file;
+		page->f_info->offset = parent_page->f_info->offset;
+		page->f_info->read_bytes = parent_page->f_info->read_bytes;
+		page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
+	}
 
 	if(parent_page->is_in_mem){
 		struct frame *child_frame = page->frame;
@@ -383,4 +443,32 @@ page_copy (struct page *page, void *aux){
 	}
 	
 	return true;
+}
+
+static bool
+file_page_copy (struct page *page, void *aux){
+	struct copy_info *c_info = (struct copy_info *)aux;
+	struct page *parent_page = c_info->parent_page;
+
+	page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
+	page->f_info->file = file_reopen(parent_page->f_info->file);
+	page->f_info->offset = parent_page->f_info->offset;
+	page->f_info->read_bytes = parent_page->f_info->read_bytes;
+	page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
+
+	if(parent_page->is_in_mem){
+		struct frame *child_frame = page->frame;
+		memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
+		child_frame->ref_cnt = parent_page->frame->ref_cnt;
+		page->is_in_mem = true;
+	}else{
+		page->is_in_mem = false;
+	}
+	
+	return true;
+}
+
+bool is_in_USER_STACK(void *uaddr){
+	return USER_STACK - MAX_STACK_SIZE <= uaddr  &&
+			uaddr < USER_STACK;
 }

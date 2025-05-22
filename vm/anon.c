@@ -79,6 +79,7 @@ anon_swap_out (struct page *page) {
 		cache_idx = anon_page->swap_sectors[i];
 		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
 	}
+	
 	page->is_in_mem = false;
 	return true;
 }

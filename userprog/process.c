@@ -88,6 +88,7 @@ static void
 initd (void *f_name) {
 #ifdef VM
 	supplemental_page_table_init (&thread_current ()->spt);
+	mmap_table_init(&thread_current ()->mmap_table);
 #endif
 
 	process_init ();
@@ -185,6 +186,9 @@ __do_fork (void *aux) {
 #ifdef VM
 	supplemental_page_table_init (&curThread->spt);
 	if (!supplemental_page_table_copy (&curThread->spt, &parent->spt))
+		goto error;
+	mmap_table_init(&curThread->mmap_table);
+	if (!mmap_table_copy (&curThread->mmap_table, &parent->mmap_table))
 		goto error;
 #else
 	if (!pml4_for_each (parent->pml4, duplicate_pte, parent))
@@ -300,10 +304,6 @@ process_exit (void) {
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-	
-#ifdef VM
-	//supplemental_page_table_destroy(&curThread->spt);
-#endif
 
 	if(curThread->is_process){
 		printf ("%s: exit(%d)\n", curThread->name, curThread->exit_status);
@@ -346,6 +346,7 @@ process_cleanup (void) {
 
 #ifdef VM
 	supplemental_page_table_kill (&curr->spt);
+	mmap_table_kill(&curr->mmap_table);
 #endif
 
 	uint64_t *pml4;
@@ -707,8 +708,9 @@ lazy_load_segment (struct page *page, void *aux) {
 	/* TODO: Load the segment from the file */
 	/* TODO: This called when the first page fault occurs on address VA. */
 	/* TODO: VA is available when calling this function. */
-	struct file_info *f_info = (struct file_info *)aux;
-
+	struct file_info *f_info = page->f_info;
+	ASSERT(f_info != NULL);
+	ASSERT(f_info->file != NULL);
 	off_t bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
 	if(bytes_read != (off_t)f_info->read_bytes){
 		return false;
@@ -755,7 +757,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 		f_info->zero_bytes = page_zero_bytes;
 
 		void *aux = f_info;
-		if (!vm_alloc_page_with_initializer (VM_ANON, upage,
+		if (!vm_alloc_page_with_initializer (VM_ANON | VM_FILE_INFO, upage,
 					writable, lazy_load_segment, aux)){
 			return false;
 		}
