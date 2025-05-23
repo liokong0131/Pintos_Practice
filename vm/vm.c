@@ -12,13 +12,12 @@
 #define MAX_STACK_SIZE (1 << 20)
 
 static struct list frame_table;
-static struct lock spt_lock;
+
 /* my implement functions */
 unsigned page_hash_create(const struct hash_elem *e, void *aux UNUSED);
 bool page_cmp_hash(const struct hash_elem *a, const struct hash_elem *b, void *aux UNUSED);
 static void spte_destroy(struct hash_elem *e, void *aux UNUSED);
-static bool anon_page_copy (struct page *page, void *aux);
-static bool file_page_copy (struct page *page, void *aux);
+
 /* Initializes the virtual memory subsystem by invoking each subsystem's
  * intialize codes. */
 void
@@ -32,7 +31,7 @@ vm_init (void) {
 	/* DO NOT MODIFY UPPER LINES. */
 	/* TODO: Your code goes here. */
 	list_init(&frame_table);
-	lock_init(&spt_lock);
+	//lock_init(&frame_lock);
 }
 
 /* Get the type of the page. This function is useful if you want to know the
@@ -144,18 +143,22 @@ spt_remove_page (struct supplemental_page_table *spt, struct page *page) {
 static struct frame *
 vm_get_victim (void) {
 	struct frame *victim = NULL;
+	struct thread *curThread = thread_current();
 	/* TODO: The policy for eviction is up to you. */
+	lock_acquire(curThread->swap_lock);
 	if(!list_empty(&frame_table)){
 		while(true){
 			victim = list_entry(list_begin(&frame_table), struct frame, l_elem);
-			if(victim->ref_cnt == 0){
+			if(!pml4_is_accessed(curThread->pml4, victim->page->va)){
 				break;
 			} else{
-				victim->ref_cnt = 0;
-				list_push_back(&frame_table, list_pop_front(&frame_table));
+				pml4_set_accessed(curThread->pml4, victim->page->va, false);
+				list_remove(&victim->l_elem);
+				list_push_back(&frame_table, &victim->l_elem);
 			}
 		}
 	}
+	lock_release(thread_current()->swap_lock);
 	return victim;
 }
 
@@ -166,7 +169,10 @@ vm_evict_frame (void) {
 	struct frame *victim = vm_get_victim ();
 	/* TODO: swap out the victim and return the evicted frame. */
 	swap_out(victim->page);
+	lock_acquire(thread_current()->swap_lock);
 	list_remove(&victim->l_elem);
+	lock_release(thread_current()->swap_lock);
+
 	return victim;
 }
 
@@ -178,21 +184,24 @@ static struct frame *
 vm_get_frame (void) {
 	struct frame *frame = NULL;
 	/* TODO: Fill this function. */
-	frame = malloc(sizeof(struct frame));
+	frame = (struct frame *)malloc(sizeof(struct frame));
 	frame->kva = palloc_get_page(PAL_USER | PAL_ZERO);
 	frame->page = NULL;
-	frame->ref_cnt = 0;
 
 	if(frame->kva == NULL){
 		struct frame *victim = vm_evict_frame();
 		frame->kva = victim->kva;
 		pml4_clear_page(thread_current()->pml4, victim->page->va);
 		memset(frame->kva, 0, PGSIZE);
+		lock_acquire(thread_current()->swap_lock);
 		list_remove(&victim->l_elem);
+		lock_release(thread_current()->swap_lock);
 		free(victim);
 	}
 
+	lock_acquire(thread_current()->swap_lock);
 	list_push_back(&frame_table, &frame->l_elem);
+	lock_release(thread_current()->swap_lock);
 
 	ASSERT (frame != NULL);
 	ASSERT (frame->page == NULL);
@@ -234,8 +243,9 @@ vm_try_handle_fault (struct intr_frame *f, void *addr,
 	/* TODO: Your code goes here */
 
 #ifdef DEBUG
-	printf("addr : %p, %d, %d, %d\n", addr, user, write, not_present);
+	//printf("addr : %p, %d, %d, %d\n", addr, user, write, not_present);
 #endif
+
 	if(is_kernel_vaddr(addr) || addr == NULL)
 		return false;
 	if(not_present){
@@ -392,80 +402,7 @@ bool page_cmp_hash(const struct hash_elem *a,
 static void
 spte_destroy(struct hash_elem *e, void *aux UNUSED){
 	struct page *page = hash_entry(e, struct page, h_elem);
-	if(page->frame != NULL){
-		list_remove(&page->frame->l_elem);
-		free(page->frame);
-	}
-	if(page->f_info != NULL)
-		free(page->f_info);
 	vm_dealloc_page(page);
-}
-
-static bool
-anon_page_copy (struct page *page, void *aux){
-	struct copy_info *c_info = (struct copy_info *)aux;
-	struct page *parent_page = c_info->parent_page;
-
-	if(parent_page->f_info != NULL){
-		page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
-		page->f_info->file = parent_page->f_info->file;
-		page->f_info->offset = parent_page->f_info->offset;
-		page->f_info->read_bytes = parent_page->f_info->read_bytes;
-		page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
-	}
-
-	if(parent_page->is_in_mem){
-		struct frame *child_frame = page->frame;
-		memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
-		child_frame->ref_cnt = parent_page->frame->ref_cnt;
-		page->is_in_mem = true;
-	}else{
-		struct anon_page *anon_parent_page = &parent_page->anon;
-		struct anon_page *anon_child_page = &page->anon;
-		size_t cache_idx = 0;
-		struct disk *swap_disk = disk_get(1, 1);
-		void *buffer = malloc(DISK_SECTOR_SIZE);
-		if(buffer == NULL){
-			return false;
-		}
-		for(int i=0; i<8; i++){
-			anon_child_page->swap_sectors[i] = bitmap_scan_and_flip(anon_child_page->swap_table, cache_idx, 1, false);
-			if(anon_child_page->swap_sectors[i] == BITMAP_ERROR){
-				return false;
-			}
-			cache_idx = anon_child_page->swap_sectors[i];
-
-			disk_read(swap_disk, anon_parent_page->swap_sectors[i], buffer);
-			disk_write(swap_disk, cache_idx, buffer);
-		}
-		free(buffer);
-		page->is_in_mem = false;
-	}
-	
-	return true;
-}
-
-static bool
-file_page_copy (struct page *page, void *aux){
-	struct copy_info *c_info = (struct copy_info *)aux;
-	struct page *parent_page = c_info->parent_page;
-
-	page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
-	page->f_info->file = file_reopen(parent_page->f_info->file);
-	page->f_info->offset = parent_page->f_info->offset;
-	page->f_info->read_bytes = parent_page->f_info->read_bytes;
-	page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
-
-	if(parent_page->is_in_mem){
-		struct frame *child_frame = page->frame;
-		memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
-		child_frame->ref_cnt = parent_page->frame->ref_cnt;
-		page->is_in_mem = true;
-	}else{
-		page->is_in_mem = false;
-	}
-	
-	return true;
 }
 
 bool is_in_USER_STACK(void *uaddr){

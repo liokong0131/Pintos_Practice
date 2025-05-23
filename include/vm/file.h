@@ -18,6 +18,7 @@ struct mmap_info{
 	void *start_uaddr;
 	int pages;
 	struct hash_elem h_elem;
+	struct file *file;
 };
 
 struct file_page {
@@ -33,4 +34,8 @@ void mmap_table_init (struct hash *mmap_table);
 bool mmap_table_copy (struct hash *dst, struct hash *src);
 
 void mmap_table_kill (struct hash *mmap_table);
+bool file_page_copy (struct page *page, void *aux);
+struct mmap_info * mmap_find (struct hash *mmap_table, void *va);
+bool mmap_insert (struct hash *mmap_table, struct mmap_info *m_info);
+void mmap_remove (struct hash *mmap_table, struct mmap_info *m_info);
 #endif

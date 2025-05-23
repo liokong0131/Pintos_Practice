@@ -39,6 +39,9 @@ process_init (void) {
 
 	curThread->fdt = (struct file **) palloc_get_page(PAL_ZERO);
 	if (curThread->fdt == NULL) { 
+#ifdef DEBUG
+		printf("process_init fdt palloc failed\n");
+#endif
 		thread_exit();
 	}
 	// 0 -> stdin, 1 -> stdout
@@ -229,6 +232,9 @@ __do_fork (void *aux) {
 	/* Finally, switch to the newly created process. */
 	do_iret (&if_);
 error:
+#ifdef DEBUG
+	printf("do_fork failed\n");
+#endif
 	curThread->exit_status = -1;
 	sema_up(&curThread->fork_sema);
 	thread_exit ();
@@ -259,6 +265,10 @@ process_exec (void *f_name) {
 #endif
 	/* If load failed, quit. */
 	palloc_free_page (file_name);
+
+#ifdef DEBUG
+	printf("success : %d\n", success);
+#endif
 	if (!success)
 		return -1;
 
@@ -449,7 +459,7 @@ load (const char *file_name, struct intr_frame *if_) {
 	off_t file_ofs;
 	bool success = false;
 	int i;
-
+	
 	//implement for argument passing
 	int argc;
 	char *argv[128];
@@ -463,10 +473,12 @@ load (const char *file_name, struct intr_frame *if_) {
 
 	/* Open executable file. */
 	//implement
+	lock_acquire(curThread->filesys_lock);
 	if ((file = filesys_open (argv[0])) == NULL) {
 		printf ("load: %s: open failed\n", argv[0]);
 		goto done;
 	}
+	
 	curThread->running_file = file;
 	file_deny_write(curThread->running_file);
 	/* Read and verify executable header. */
@@ -551,6 +563,7 @@ load (const char *file_name, struct intr_frame *if_) {
 done:
 	/* We arrive here whether the load is successful or not. */
 	// file_close (file);
+	lock_release(curThread->filesys_lock);
 	return success;
 }
 
@@ -711,7 +724,16 @@ lazy_load_segment (struct page *page, void *aux) {
 	struct file_info *f_info = page->f_info;
 	ASSERT(f_info != NULL);
 	ASSERT(f_info->file != NULL);
-	off_t bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+
+	off_t bytes_read;
+	if(!lock_held_by_current_thread(thread_current()->filesys_lock)){
+		lock_acquire(thread_current()->filesys_lock);
+		bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+		lock_release(thread_current()->filesys_lock);
+	}else{
+		bytes_read = file_read_at(f_info->file, page->frame->kva, f_info->read_bytes, f_info->offset);
+	}
+
 	if(bytes_read != (off_t)f_info->read_bytes){
 		return false;
 	}
@@ -777,26 +799,14 @@ setup_stack (struct intr_frame *if_) {
 	bool success = false;
 	void *stack_bottom = (void *) (((uint8_t *) USER_STACK) - PGSIZE);
 
-#ifdef DEBUG
-	printf("$$ setup_stack\n");
-#endif
-
 	if(vm_alloc_page(VM_ANON | VM_STACK, stack_bottom, true)){
 		if(vm_claim_page(stack_bottom)){
-#ifdef DEBUG
-			printf("success claim\n");
-#endif	
 			if_->rsp = USER_STACK;
 			success = true;
 		} else{
 			vm_dealloc_page(spt_find_page(&thread_current()->spt, stack_bottom));
 		}
 	}
-
-#ifdef DEBUG
-	printf("rsp : %p\n", if_->rsp);
-#endif
-
 	return success;
 }
 #endif /* VM */

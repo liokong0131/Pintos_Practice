@@ -4,6 +4,7 @@
 #include "devices/disk.h"
 #include "threads/malloc.h"
 #include "threads/synch.h"
+#include "threads/mmu.h"
 
 /* DO NOT MODIFY BELOW LINE */
 static struct disk *swap_disk;
@@ -42,7 +43,6 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 	/* page initialize */
 	struct anon_page *anon_page = &page->anon;
 	page->is_in_mem = true;
-	anon_page->swap_table = swap_table;
 
 	return true;
 }
@@ -51,15 +51,14 @@ anon_initializer (struct page *page, enum vm_type type, void *kva) {
 static bool
 anon_swap_in (struct page *page, void *kva) {
 	struct anon_page *anon_page = &page->anon;
-
+	lock_acquire(thread_current()->swap_lock);
 	for(int i=0; i<8; i++){
-#ifdef DEBUG
-		printf("sec no : %d\n", anon_page->swap_sectors[i]);
-#endif
-		disk_read(swap_disk, anon_page->swap_sectors[i], kva + (i * DISK_SECTOR_SIZE));
-		bitmap_set(swap_table, anon_page->swap_sectors[i], false);
+		disk_read(swap_disk, (anon_page->swap_sector * 8) + i, kva + (i * DISK_SECTOR_SIZE));
 	}
+	bitmap_set(swap_table, anon_page->swap_sector, false);
+	lock_release(thread_current()->swap_lock);
 	page->is_in_mem = true;
+	return true;
 }
 	
 
@@ -68,19 +67,18 @@ static bool
 anon_swap_out (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
 
-	size_t cache_idx = 0;
-
-	for(int i=0; i<8; i++){
-		anon_page->swap_sectors[i] = bitmap_scan_and_flip(swap_table, cache_idx, 1, false);
-    	if(anon_page->swap_sectors[i] == BITMAP_ERROR){
-			return false;
-		}
-
-		cache_idx = anon_page->swap_sectors[i];
-		disk_write(swap_disk, cache_idx, page->frame->kva + (i * DISK_SECTOR_SIZE));
+	lock_acquire(thread_current()->swap_lock);
+	anon_page->swap_sector = bitmap_scan_and_flip(swap_table, 0, 1, false);
+	if(anon_page->swap_sector == BITMAP_ERROR){
+		lock_release(thread_current()->swap_lock);
+		return false;
 	}
-	
+	for(int i=0; i<8; i++){
+		disk_write(swap_disk, (anon_page->swap_sector * 8) + i, page->frame->kva + (i * DISK_SECTOR_SIZE));
+	}
+	lock_release(thread_current()->swap_lock);
 	page->is_in_mem = false;
+	page->frame = NULL;
 	return true;
 }
 
@@ -88,10 +86,57 @@ anon_swap_out (struct page *page) {
 static void
 anon_destroy (struct page *page) {
 	struct anon_page *anon_page = &page->anon;
-
 	if(!page->is_in_mem){
-		for(int i=0; i<8; i++){
-			bitmap_set(swap_table, anon_page->swap_sectors[i], false);
-		}
+		lock_acquire(thread_current()->swap_lock);
+		bitmap_set(swap_table, anon_page->swap_sector, false);
+		lock_release(thread_current()->swap_lock);
+	}else{
+		lock_acquire(thread_current()->swap_lock);
+		list_remove(&page->frame->l_elem);
+		lock_release(thread_current()->swap_lock);
+		free(page->frame);
 	}
+	if(page->f_info != NULL)
+		free(page->f_info);
+	return;
+}
+
+bool
+anon_page_copy (struct page *page, void *aux){
+	struct copy_info *c_info = (struct copy_info *)aux;
+	struct page *parent_page = c_info->parent_page;
+
+	if(parent_page->f_info != NULL){
+		page->f_info = (struct file_info *)malloc(sizeof(struct file_info));
+		page->f_info->file = parent_page->f_info->file;
+		page->f_info->offset = parent_page->f_info->offset;
+		page->f_info->read_bytes = parent_page->f_info->read_bytes;
+		page->f_info->zero_bytes = parent_page->f_info->zero_bytes;
+	}
+
+	if(parent_page->is_in_mem){
+		struct frame *child_frame = page->frame;
+		memcpy(child_frame->kva, parent_page->frame->kva, PGSIZE);
+		page->is_in_mem = true;
+	}else{
+		struct anon_page *anon_parent_page = &parent_page->anon;
+		struct anon_page *anon_child_page = &page->anon;
+		size_t cache_idx = 0;
+		struct disk *swap_disk = disk_get(1, 1);
+		void *buffer = malloc(DISK_SECTOR_SIZE);
+		if(buffer == NULL){
+			return false;
+		}
+		lock_acquire(thread_current()->swap_lock);
+		anon_child_page->swap_sector = bitmap_scan_and_flip(swap_table, 0, 1, false);
+		for(int i=0; i<8; i++){
+			disk_read(swap_disk, (anon_parent_page->swap_sector * 8) + i, buffer);
+			disk_write(swap_disk, (anon_child_page->swap_sector * 8) + i, buffer);
+		}
+		lock_release(thread_current()->swap_lock);
+		free(buffer);
+		page->is_in_mem = false;
+	}
+	
+	return true;
 }

@@ -130,12 +130,14 @@ struct thread {
 	bool is_process;
 	struct intr_frame parent_if;
 	struct file *running_file;
+	struct lock* filesys_lock;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
 	struct supplemental_page_table spt;
 	struct hash mmap_table;
 	void *user_rsp;
+	struct lock *swap_lock;
 #endif
 
 	/* Owned by thread.c. */

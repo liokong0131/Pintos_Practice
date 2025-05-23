@@ -17,6 +17,14 @@
         "inttypes.h": "c",
         "process.h": "c",
         "*.inc": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "interrupt.h": "c",
+        "stdio.h": "c",
+        "filesys.h": "c",
+        "syscall-nr.h": "c",
+        "file.h": "c",
+        "parallel-merge.h": "c",
+        "string.h": "c",
+        "thread": "c"
     }
 }

@@ -13,6 +13,7 @@
 #include "userprog/process.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+#include "vm/file.h"
 
 enum syscall_status {
 	READ,
@@ -24,8 +25,11 @@ typedef int pid_t;
 
 void check_valid_uaddr(const uint64_t *addr);
 bool is_valid_fd(int fd, enum syscall_status stat);
-bool is_valid_uaddr(const uint64_t *addr);
-void check_writable_addr(const uint64_t *addr);
+bool is_valid_uaddr(const uint64_t *addr, size_t length);
+void check_writable_addr(const uint64_t *addr, unsigned length);
+bool is_overlap(const uint64_t *addr, size_t length);
+bool is_valid_offset(off_t offset);
+bool is_writable_addr(const uint64_t *addr, unsigned length);
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
@@ -185,22 +189,31 @@ int wait (pid_t pid){
 
 bool create (const char *file, unsigned initial_size){
 	check_valid_uaddr(file);
-	return filesys_create(file, initial_size);
+	lock_acquire(thread_current()->filesys_lock);
+	bool success = filesys_create(file, initial_size);
+	lock_release(thread_current()->filesys_lock);
+	return success;
 }
 bool remove (const char *file){
 	check_valid_uaddr(file);
-	return filesys_remove(file);
+	lock_acquire(thread_current()->filesys_lock);
+	bool success = filesys_remove(file);
+	lock_release(thread_current()->filesys_lock);
+	return success;
 }
 int open (const char *file){
 	check_valid_uaddr(file);
 	int fd;
 	struct file *open_file;
-	if((open_file = filesys_open(file)) == NULL)
+	lock_acquire(thread_current()->filesys_lock);
+	if((open_file = filesys_open(file)) == NULL){
+		lock_release(thread_current()->filesys_lock);
 		return -1;
-
+	}
+		
 	if ((fd = insert_file_to_fdt(open_file)) == -1)
 		file_close(open_file);
-
+	lock_release(thread_current()->filesys_lock);
 	return fd;
 }
 int filesize (int fd){
@@ -208,20 +221,29 @@ int filesize (int fd){
 	if(!is_valid_fd (fd, OTHERS)) return -1;
 
 	struct file *file = curThread->fdt[fd];
-	return file_length (file);
+	lock_acquire(thread_current()->filesys_lock);
+	off_t result = file_length (file);
+	lock_release(thread_current()->filesys_lock);
+	return result;
 }
 int read (int fd, void *buffer, unsigned length){
 	check_valid_uaddr(buffer);
-	check_writable_addr(buffer);
+	check_writable_addr(buffer, length);
 	if(!is_valid_fd (fd, READ)) return -1;
 	
 	struct thread *curThread = thread_current ();
+	
 	if(fd == 0){
-		return input_getc();
+		int result = input_getc();
+		return result;
 	} else{
+		void *kva;
 		struct file *file = curThread->fdt[fd];
+		lock_acquire(thread_current()->filesys_lock);
 		file_deny_write(file);
-		return file_read(file, buffer, length);
+		off_t result = file_read(file, buffer, length);
+		lock_release(thread_current()->filesys_lock);
+		return result;
 	}
 }
 int write (int fd, const void *buffer, unsigned length){
@@ -229,34 +251,42 @@ int write (int fd, const void *buffer, unsigned length){
 	if(!is_valid_fd (fd, WRITE)) return -1;
 
 	struct thread *curThread = thread_current ();
-
 	if(fd == 1){
 		putbuf(buffer, length);
-		return length;
+		return 0;
 	}else{
 		struct file *file = curThread->fdt[fd];
-		return file_write(file, buffer, length);
+		lock_acquire(thread_current()->filesys_lock);
+		off_t result = file_write(file, buffer, length);
+		lock_release(thread_current()->filesys_lock);
+		return result;
 	}
 }
 void seek (int fd, unsigned position){
 	struct thread *curThread = thread_current ();
 	if(!is_valid_fd (fd, OTHERS)) return;
 	struct file *file = curThread->fdt[fd];
+	lock_acquire(thread_current()->filesys_lock);
 	file_seek(file, position);
 	if (position == 0) file_allow_write(file);
+	lock_release(thread_current()->filesys_lock);
 }	
 unsigned tell (int fd){
 	struct thread *curThread = thread_current ();
 	if(!is_valid_fd (fd, OTHERS)) return;
 	struct file *file = curThread->fdt[fd];
-	return file_tell(file);
+	lock_acquire(thread_current()->filesys_lock);
+	off_t result = file_tell(file);
+	lock_release(thread_current()->filesys_lock);
+	return result;
 }
 void close (int fd){
 	struct thread *curThread = thread_current ();
 	if(!is_valid_fd (fd, OTHERS)) return;
 	struct file *file = curThread->fdt[fd];
+	lock_acquire(thread_current()->filesys_lock);
 	file_close(file);
-
+	lock_release(thread_current()->filesys_lock);
 	curThread->fdt[fd] = NULL;
 	curThread->fdt_cur = fd;
 	curThread->num_files--;
@@ -268,13 +298,17 @@ int dup2(int oldfd, int newfd){
 
 void *mmap (void *addr, size_t length, int writable, int fd, off_t offset){
 	if(!is_valid_fd(fd, OTHERS)) return NULL;
-	if(!is_valid_uaddr(addr)) return NULL;
-	if(length == 0) return NULL;
+	if(!is_valid_uaddr(addr, length)) return NULL;
+	if(!is_valid_offset(offset)) return NULL;
+	if(length <= 0) return NULL;
+	if(is_overlap(addr, length)) return NULL;
+	if(!is_writable_addr(addr, length)) return NULL;
+	if(spt_find_page(&thread_current()->spt, addr)) return NULL;
 	return do_mmap(addr, length, writable, thread_current()->fdt[fd], offset);
 }
 
 void munmap(void *addr){
-	if(!is_valid_uaddr(addr)) return;
+	if(!is_valid_uaddr(addr, 0)) return;
 	do_munmap(addr);
 }
 
@@ -314,9 +348,15 @@ void check_valid_uaddr(const uint64_t *addr){
 	}
 }
 
-bool is_valid_uaddr(const uint64_t *addr){
-	if (addr == NULL || !is_user_vaddr(addr) || addr != pg_round_down(addr))
+bool is_valid_uaddr(const uint64_t *addr, size_t length){
+	if (addr == NULL || !is_user_vaddr(addr) || addr != pg_round_down(addr) || !is_user_vaddr(addr + length))
     	return false;
+	return true;
+}
+
+bool is_valid_offset(off_t offset){
+	if(offset != pg_round_down(offset))
+		return false;
 	return true;
 }
 
@@ -329,14 +369,60 @@ bool is_valid_fd(int fd, enum syscall_status stat){
 	else return false;
 }
 
-void check_writable_addr(const uint64_t *addr){
-	struct page *page = spt_find_page(&thread_current()->spt, addr);
+void check_writable_addr(const uint64_t *addr, unsigned length){
+	struct page *page = spt_find_page(&thread_current()->spt, pg_round_down(addr));
 	if(page == NULL){
 		return;
 	}
-	if(!page->writable)
+	if(!page->writable){
 #ifdef DEBUG
 		printf("no writable\n");
 #endif
 		exit(-1);
+	}
+	page = spt_find_page(&thread_current()->spt, pg_round_down(addr + length));
+	if(page == NULL){
+		return;
+	}
+	if(!page->writable){
+#ifdef DEBUG
+		printf("no writable\n");
+#endif
+		exit(-1);
+	}
+}
+
+bool is_writable_addr(const uint64_t *addr, unsigned length){
+	struct page *page = spt_find_page(&thread_current()->spt, pg_round_down(addr));
+	if(page == NULL){
+		return true;
+	}
+	if(!page->writable){
+#ifdef DEBUG
+		printf("no writable\n");
+#endif
+		return false;
+	}
+	page = spt_find_page(&thread_current()->spt, pg_round_down(addr + length));
+	if(page == NULL){
+		return true;
+	}
+	if(!page->writable){
+#ifdef DEBUG
+		printf("no writable\n");
+#endif
+		return false;
+	}
+}
+
+bool is_overlap(const uint64_t *addr, size_t length){
+	for(uint64_t cur_addr = addr; cur_addr < addr + length; cur_addr+=PGSIZE){
+		if(mmap_find(&thread_current()->mmap_table, cur_addr) != NULL){
+#ifdef DEBUG
+			printf("overlapping\n");
+#endif
+			return true;
+		}
+	}
+	return false;
 }

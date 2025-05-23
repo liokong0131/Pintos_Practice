@@ -36,6 +36,8 @@ static struct list sleep_list;
 //implment for mlfqs scheduling
 static struct list all_list;
 int load_avg;
+struct lock filesys_lock;
+struct lock swap_lock;
 
 /* Idle thread. */
 static struct thread *idle_thread;
@@ -121,7 +123,8 @@ thread_init (void) {
 	list_init (&sleep_list);
 	list_init (&all_list);
 	list_init (&destruction_req);
-
+	lock_init (&filesys_lock);
+	lock_init (&swap_lock);
 	/* Set up a thread structure for the running thread. */
 	initial_thread = running_thread ();
 	init_thread (initial_thread, "main", PRI_DEFAULT);
@@ -489,6 +492,11 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->exit_status = 0;
 	list_init(&t->child_list);
 	t->is_process = false;
+	t->filesys_lock = &filesys_lock;
+#endif
+
+#ifdef VM
+	t->swap_lock = &swap_lock;
 #endif
 }
 
@@ -766,6 +774,7 @@ compare_priority_in_donations(const struct list_elem *a, const struct list_elem 
 void
 donate_priority(struct thread* t){
 	//recursion
+	if(t == NULL) return;
 	if(t->waiting_lock == NULL) return;
 	if(t->waiting_lock->holder == NULL) return;
 	struct thread* holder =  t->waiting_lock->holder;
