@@ -22,4 +22,6 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
    
    echo "source ~/pintos-kaist/activate" >> ~/.bashrc
    source ~/.bashrc
+# Useful Site
 
+   kaist-pintos 가이드 : https://yjohdev.notion.site/PROJECT-4-FILE-SYSTEMS-2ddaf333c7294b7a8ad22bd718dfd7a3
