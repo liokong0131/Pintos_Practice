@@ -158,6 +158,7 @@ fat_fs_init (void) {
 	fat_fs->fat_length = bs->fat_sectors;
 	fat_fs->data_start = bs->fat_start;
 	fat_fs->last_clst = 2;
+	lock_init(&fat_fs->write_lock);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -171,6 +172,7 @@ cluster_t
 fat_create_chain (cluster_t clst) {
 	/* TODO: Your code goes here. */
 	cluster_t result = 0;
+	lock_acquire(&fat_fs->write_lock);
 
 	if(clst == 0){
 		result = fat_fs->last_clst;
@@ -183,7 +185,7 @@ fat_create_chain (cluster_t clst) {
 			fat_fs->last_clst = find_empty_cluster();
 		}
 	}
-
+	lock_release(&fat_fs->write_lock);
 	return result;
 }
 
@@ -197,6 +199,7 @@ fat_remove_chain (cluster_t clst, cluster_t pclst) {
 	cluster_t nclst_;
 	cluster_t minClst = fat_fs->last_clst;
 
+	lock_acquire(&fat_fs->write_lock);
 	if(pclst != 0){
 		fat_fs->fat[pclst] = EOChain;
 	}
@@ -211,27 +214,36 @@ fat_remove_chain (cluster_t clst, cluster_t pclst) {
 	}
 
 	fat_fs->last_clst = minClst;
+	lock_release(&fat_fs->write_lock);
 }
 
 /* Update a value in the FAT table. */
 void
 fat_put (cluster_t clst, cluster_t val) {
 	/* TODO: Your code goes here. */
+	lock_acquire(&fat_fs->write_lock);
 	fat_fs->fat[clst] = val;
+	lock_release(&fat_fs->write_lock);
 }
 
 /* Fetch a value in the FAT table. */
 cluster_t
 fat_get (cluster_t clst) {
 	/* TODO: Your code goes here. */
-	return fat_fs->fat[clst];
+	lock_acquire(&fat_fs->write_lock);
+	cluster_t result = fat_fs->fat[clst];
+	lock_release(&fat_fs->write_lock);
+	return result;
 }
 
 /* Covert a cluster # to a sector number. */
 disk_sector_t
 cluster_to_sector (cluster_t clst) {
 	/* TODO: Your code goes here. */
-	return fat_fs->data_start + clst - 2;
+	lock_acquire(&fat_fs->write_lock);
+	cluster_t result = fat_fs->data_start + clst - 2;
+	lock_release(&fat_fs->write_lock);
+	return result;
 }
 
 
@@ -240,11 +252,14 @@ cluster_t
 find_empty_cluster(void){
 	cluster_t idx = fat_fs->last_clst;
 
+	lock_acquire(&fat_fs->write_lock);
 	while(idx <= fat_fs->fat_length){
 		if(fat_fs->fat[idx] == 0){
+			lock_release(&fat_fs->write_lock);
 			return idx;
 		}
 		idx++;
 	}
+	lock_release(&fat_fs->write_lock);
 	return 0;
 }
