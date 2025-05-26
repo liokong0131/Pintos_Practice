@@ -30,6 +30,7 @@ static struct fat_fs *fat_fs;
 
 void fat_boot_create (void);
 void fat_fs_init (void);
+cluster_t find_empty_cluster(void);
 
 void
 fat_init (void) {
@@ -153,6 +154,10 @@ fat_boot_create (void) {
 void
 fat_fs_init (void) {
 	/* TODO: Your code goes here. */
+	struct fat_boot *bs = &fat_fs->bs;
+	fat_fs->fat_length = bs->fat_sectors;
+	fat_fs->data_start = bs->fat_start;
+	fat_fs->last_clst = 2;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -165,6 +170,21 @@ fat_fs_init (void) {
 cluster_t
 fat_create_chain (cluster_t clst) {
 	/* TODO: Your code goes here. */
+	cluster_t result = 0;
+
+	if(clst == 0){
+		result = fat_fs->last_clst;
+		fat_fs->fat[result] = EOChain;
+		fat_fs->last_clst = find_empty_cluster();
+	} else if(fat_fs->fat[clst] == 0){
+		result = clst;
+		fat_fs->fat[clst] = EOChain;
+		if(fat_fs->last_clst == clst){
+			fat_fs->last_clst = find_empty_cluster();
+		}
+	}
+
+	return result;
 }
 
 /* Remove the chain of clusters starting from CLST.
@@ -172,22 +192,59 @@ fat_create_chain (cluster_t clst) {
 void
 fat_remove_chain (cluster_t clst, cluster_t pclst) {
 	/* TODO: Your code goes here. */
+	
+	cluster_t clst_ = clst;
+	cluster_t nclst_;
+	cluster_t minClst = fat_fs->last_clst;
+
+	if(pclst != 0){
+		fat_fs->fat[pclst] = EOChain;
+	}
+
+	while(clst_ != EOChain){
+		nclst_ = fat_fs->fat[clst_];
+		fat_fs->fat[clst_] = 0;
+		if(clst < minClst){
+			minClst = clst;
+		}
+		clst = nclst_;
+	}
+
+	fat_fs->last_clst = minClst;
 }
 
 /* Update a value in the FAT table. */
 void
 fat_put (cluster_t clst, cluster_t val) {
 	/* TODO: Your code goes here. */
+	fat_fs->fat[clst] = val;
 }
 
 /* Fetch a value in the FAT table. */
 cluster_t
 fat_get (cluster_t clst) {
 	/* TODO: Your code goes here. */
+	return fat_fs->fat[clst];
 }
 
 /* Covert a cluster # to a sector number. */
 disk_sector_t
 cluster_to_sector (cluster_t clst) {
 	/* TODO: Your code goes here. */
+	return fat_fs->data_start + clst - 2;
+}
+
+
+// my implement funcions
+cluster_t
+find_empty_cluster(void){
+	cluster_t idx = fat_fs->last_clst;
+
+	while(idx <= fat_fs->fat_length){
+		if(fat_fs->fat[idx] == 0){
+			return idx;
+		}
+		idx++;
+	}
+	return 0;
 }
