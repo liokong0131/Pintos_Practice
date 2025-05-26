@@ -23,3 +23,6 @@ The manual is available at https://casys-kaist.github.io/pintos-kaist/.
    echo "source ~/pintos-kaist/activate" >> ~/.bashrc
    source ~/.bashrc
 
+### 5. Pintos permission denied error
+
+   chmod +x utils/pintos
