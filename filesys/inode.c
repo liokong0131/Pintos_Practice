@@ -6,6 +6,7 @@
 #include "filesys/filesys.h"
 #include "filesys/free-map.h"
 #include "threads/malloc.h"
+#include "filesys/fat.h"
 
 /* Identifies an inode. */
 #define INODE_MAGIC 0x494e4f44
@@ -14,9 +15,10 @@
  * Must be exactly DISK_SECTOR_SIZE bytes long. */
 struct inode_disk {
 	disk_sector_t start;                /* First data sector. */
+	cluster_t clst;
 	off_t length;                       /* File size in bytes. */
 	unsigned magic;                     /* Magic number. */
-	uint32_t unused[125];               /* Not used. */
+	uint32_t unused[124];               /* Not used. */
 };
 
 /* Returns the number of sectors to allocate for an inode SIZE
@@ -77,22 +79,30 @@ inode_create (disk_sector_t sector, off_t length) {
 
 	disk_inode = calloc (1, sizeof *disk_inode);
 	if (disk_inode != NULL) {
+		cluster_t clst = fat_create_chain(0);
 		size_t sectors = bytes_to_sectors (length);
 		disk_inode->length = length;
 		disk_inode->magic = INODE_MAGIC;
-		if (free_map_allocate (sectors, &disk_inode->start)) {
+		if (clst) {
+			disk_inode->clst = clst;
+			disk_inode->start = cluster_to_sector(clst);
 			disk_write (filesys_disk, sector, disk_inode);
 			if (sectors > 0) {
 				static char zeros[DISK_SECTOR_SIZE];
 				size_t i;
-
-				for (i = 0; i < sectors; i++) 
-					disk_write (filesys_disk, disk_inode->start + i, zeros); 
+				printf("sectors : %d\n", sectors);
+				for (i = 0; i < sectors-1; i++) {
+					disk_write (filesys_disk, cluster_to_sector(clst), zeros);
+					clst = fat_create_chain(clst);
+					if (clst == 0) return false;
+				}
+				disk_write (filesys_disk, cluster_to_sector(clst), zeros);
 			}
 			success = true; 
 		} 
 		free (disk_inode);
 	}
+	printf("success inode create : %d\n", success);
 	return success;
 }
 
@@ -159,9 +169,7 @@ inode_close (struct inode *inode) {
 
 		/* Deallocate blocks if removed. */
 		if (inode->removed) {
-			free_map_release (inode->sector, 1);
-			free_map_release (inode->data.start,
-					bytes_to_sectors (inode->data.length)); 
+			fat_remove_chain(inode->data.clst, 0);
 		}
 
 		free (inode); 
@@ -186,12 +194,14 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset) {
 	uint8_t *bounce = NULL;
 
 	while (size > 0) {
+		printf("size : %d\n", size);
 		/* Disk sector to read, starting byte offset within sector. */
 		disk_sector_t sector_idx = byte_to_sector (inode, offset);
 		int sector_ofs = offset % DISK_SECTOR_SIZE;
 
 		/* Bytes left in inode, bytes left in sector, lesser of the two. */
 		off_t inode_left = inode_length (inode) - offset;
+		printf("inode left : %d\n", inode_left);
 		int sector_left = DISK_SECTOR_SIZE - sector_ofs;
 		int min_left = inode_left < sector_left ? inode_left : sector_left;
 

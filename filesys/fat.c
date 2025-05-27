@@ -178,12 +178,11 @@ fat_create_chain (cluster_t clst) {
 		result = fat_fs->last_clst;
 		fat_fs->fat[result] = EOChain;
 		fat_fs->last_clst = find_empty_cluster();
-	} else if(fat_fs->fat[clst] == 0){
-		result = clst;
-		fat_fs->fat[clst] = EOChain;
-		if(fat_fs->last_clst == clst){
-			fat_fs->last_clst = find_empty_cluster();
-		}
+	} else{
+		fat_fs->fat[clst] = fat_fs->last_clst;
+		fat_fs->fat[fat_fs->last_clst] = EOChain;
+		result = fat_fs->last_clst;
+		fat_fs->last_clst = find_empty_cluster();
 	}
 	lock_release(&fat_fs->write_lock);
 	return result;
@@ -252,14 +251,11 @@ cluster_t
 find_empty_cluster(void){
 	cluster_t idx = fat_fs->last_clst;
 
-	lock_acquire(&fat_fs->write_lock);
 	while(idx <= fat_fs->fat_length){
 		if(fat_fs->fat[idx] == 0){
-			lock_release(&fat_fs->write_lock);
 			return idx;
 		}
 		idx++;
 	}
-	lock_release(&fat_fs->write_lock);
 	return 0;
 }

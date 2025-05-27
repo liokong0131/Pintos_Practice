@@ -25,6 +25,8 @@
         "file.h": "c",
         "parallel-merge.h": "c",
         "string.h": "c",
-        "thread": "c"
+        "thread": "c",
+        "fat.h": "c",
+        "directory.h": "c"
     }
 }
