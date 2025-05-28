@@ -146,7 +146,7 @@ fat_boot_create (void) {
 	    .sectors_per_cluster = SECTORS_PER_CLUSTER,
 	    .total_sectors = disk_size (filesys_disk),
 	    .fat_start = 1,
-	    .fat_sectors = fat_sectors,
+	    .fat_sectors = fat_sectors, // 157
 	    .root_dir_cluster = ROOT_DIR_CLUSTER,
 	};
 }
@@ -155,8 +155,8 @@ void
 fat_fs_init (void) {
 	/* TODO: Your code goes here. */
 	struct fat_boot *bs = &fat_fs->bs;
-	fat_fs->fat_length = bs->fat_sectors;
-	fat_fs->data_start = bs->fat_start;
+	fat_fs->fat_length = bs->fat_sectors * (DISK_SECTOR_SIZE / sizeof (cluster_t));
+	fat_fs->data_start = bs->fat_start + bs->fat_sectors;
 	fat_fs->last_clst = 2;
 	lock_init(&fat_fs->write_lock);
 }
@@ -171,20 +171,19 @@ fat_fs_init (void) {
 cluster_t
 fat_create_chain (cluster_t clst) {
 	/* TODO: Your code goes here. */
+	//printf("clst : %d\n", clst);
 	cluster_t result = 0;
-	lock_acquire(&fat_fs->write_lock);
 
-	if(clst == 0){
-		result = fat_fs->last_clst;
-		fat_fs->fat[result] = EOChain;
-		fat_fs->last_clst = find_empty_cluster();
-	} else{
-		fat_fs->fat[clst] = fat_fs->last_clst;
-		fat_fs->fat[fat_fs->last_clst] = EOChain;
-		result = fat_fs->last_clst;
-		fat_fs->last_clst = find_empty_cluster();
+	lock_acquire(&fat_fs->write_lock);
+	if(clst != 0){
+		fat_put(clst, fat_fs->last_clst);
 	}
+	fat_put(fat_fs->last_clst, EOChain);
+	result = fat_fs->last_clst;
+	fat_fs->last_clst = find_empty_cluster();
+
 	lock_release(&fat_fs->write_lock);
+
 	return result;
 }
 
@@ -200,16 +199,16 @@ fat_remove_chain (cluster_t clst, cluster_t pclst) {
 
 	lock_acquire(&fat_fs->write_lock);
 	if(pclst != 0){
-		fat_fs->fat[pclst] = EOChain;
+		fat_put(pclst, EOChain);
 	}
 
 	while(clst_ != EOChain){
-		nclst_ = fat_fs->fat[clst_];
-		fat_fs->fat[clst_] = 0;
-		if(clst < minClst){
-			minClst = clst;
+		nclst_ = fat_get(clst_);
+		fat_put(clst_, 0);
+		if(clst_ < minClst){
+			minClst = clst_;
 		}
-		clst = nclst_;
+		clst_ = nclst_;
 	}
 
 	fat_fs->last_clst = minClst;
@@ -220,19 +219,14 @@ fat_remove_chain (cluster_t clst, cluster_t pclst) {
 void
 fat_put (cluster_t clst, cluster_t val) {
 	/* TODO: Your code goes here. */
-	lock_acquire(&fat_fs->write_lock);
 	fat_fs->fat[clst] = val;
-	lock_release(&fat_fs->write_lock);
 }
 
 /* Fetch a value in the FAT table. */
 cluster_t
 fat_get (cluster_t clst) {
 	/* TODO: Your code goes here. */
-	lock_acquire(&fat_fs->write_lock);
-	cluster_t result = fat_fs->fat[clst];
-	lock_release(&fat_fs->write_lock);
-	return result;
+	return fat_fs->fat[clst];
 }
 
 /* Covert a cluster # to a sector number. */
@@ -240,7 +234,7 @@ disk_sector_t
 cluster_to_sector (cluster_t clst) {
 	/* TODO: Your code goes here. */
 	lock_acquire(&fat_fs->write_lock);
-	cluster_t result = fat_fs->data_start + clst - 2;
+	cluster_t result = fat_fs->data_start + (clst - ROOT_DIR_CLUSTER);
 	lock_release(&fat_fs->write_lock);
 	return result;
 }

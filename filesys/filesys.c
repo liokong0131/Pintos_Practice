@@ -8,6 +8,7 @@
 #include "filesys/directory.h"
 #include "devices/disk.h"
 #include "filesys/fat.h"
+#include "threads/thread.h"
 
 /* The disk that contains the file system. */
 struct disk *filesys_disk;
@@ -23,13 +24,11 @@ filesys_init (bool format) {
 		PANIC ("hd0:1 (hdb) not present, file system initialization failed");
 
 	inode_init ();
-
 #ifdef EFILESYS
 	fat_init ();
 
 	if (format)
 		do_format ();
-
 	fat_open ();
 #else
 	/* Original FS */
@@ -40,6 +39,8 @@ filesys_init (bool format) {
 
 	free_map_open ();
 #endif
+	if (format && !dir_create (ROOT_DIR_SECTOR, 16))
+		PANIC ("root directory creation failed");
 }
 
 /* Shuts down the file system module, writing any unwritten data
@@ -61,26 +62,31 @@ filesys_done (void) {
 bool
 filesys_create (const char *name, off_t initial_size) {
 	disk_sector_t inode_sector = 0;
-	struct dir *dir = dir_open_root ();
-	bool success = false;
-	cluster_t clst;
-	printf("here\n");
-	if(dir != NULL){
-		clst = fat_create_chain(0);
-		printf("here2\n");
-		if(clst != 0){
-			bool success = (inode_create (cluster_to_sector(clst), initial_size)
-						&& dir_add (dir, name, cluster_to_sector(clst)));
-		}
-		printf("here3\n");
+	
+	struct dir *curDir = (thread_current()->cwd == NULL) ? dir_open_root() : dir_reopen(thread_current()->cwd);
+	int argc = 0;
+	char *argv[128];
+	char *file_name;
+	directory_tokenize(name, &argc, argv);
+	if(argc == 0){
+		dir_close(curDir);
+		return false;
 	}
-	printf("%d\n", success);
+	file_name = argv[argc-1];
+	change_directory(name, argc, argv, &curDir, 1);
+	
+	cluster_t clst;
+	clst = fat_create_chain(0);
+	inode_sector = cluster_to_sector(clst);
+	bool success = (curDir != NULL
+				&& clst != 0
+				&& inode_create (inode_sector, initial_size)
+				&& dir_add (curDir, file_name, inode_sector));
+	
 	if (!success)
 		fat_remove_chain(clst, 0);
-	
-	
-	dir_close (dir);
-	printf("here5\n");
+
+	dir_close (curDir);
 	return success;
 }
 
@@ -91,13 +97,23 @@ filesys_create (const char *name, off_t initial_size) {
  * or if an internal memory allocation fails. */
 struct file *
 filesys_open (const char *name) {
-	struct dir *dir = dir_open_root ();
 	struct inode *inode = NULL;
-
-	if (dir != NULL)
-		dir_lookup (dir, name, &inode);
-	dir_close (dir);
-
+	struct dir *curDir = (thread_current()->cwd == NULL) ? dir_open_root() : dir_reopen(thread_current()->cwd);
+	int argc = 0;
+	char *argv[128];
+	char *file_name;
+	directory_tokenize(name, &argc, argv);
+	if(argc == 0){
+		dir_close(curDir);
+		return false;
+	}
+	file_name = argv[argc-1];
+	change_directory(name, argc, argv, &curDir, 1);
+	
+	if (curDir != NULL)
+		dir_lookup (curDir, file_name, &inode);
+	dir_close (curDir);
+	
 	return file_open (inode);
 }
 

@@ -9,4 +9,4 @@ filesys/page_cache.o: ../../filesys/page_cache.c ../../include/vm/vm.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
  ../../include/threads/thread.h ../../include/lib/debug.h \
  ../../include/lib/kernel/list.h ../../include/threads/interrupt.h \
- ../../include/threads/synch.h
+ ../../include/threads/synch.h ../../include/filesys/inode.h

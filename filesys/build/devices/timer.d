@@ -12,4 +12,4 @@ devices/timer.o: ../../devices/timer.c ../../include/devices/timer.h \
  ../../include/devices/disk.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/bitmap.h
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h

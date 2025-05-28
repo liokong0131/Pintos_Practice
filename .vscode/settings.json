@@ -27,6 +27,8 @@
         "string.h": "c",
         "thread": "c",
         "fat.h": "c",
-        "directory.h": "c"
+        "directory.h": "c",
+        "inode.h": "c",
+        "typeinfo": "c"
     }
 }

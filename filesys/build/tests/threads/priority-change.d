@@ -12,4 +12,4 @@ tests/threads/priority-change.o: ../../tests/threads/priority-change.c \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/bitmap.h
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h

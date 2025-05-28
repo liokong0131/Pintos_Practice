@@ -13,4 +13,5 @@ tests/threads/alarm-wait.o: ../../tests/threads/alarm-wait.c \
  ../../include/vm/file.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/devices/timer.h ../../include/lib/round.h
+ ../../include/filesys/inode.h ../../include/devices/timer.h \
+ ../../include/lib/round.h

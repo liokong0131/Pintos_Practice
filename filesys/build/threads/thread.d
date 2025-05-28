@@ -9,11 +9,12 @@ threads/thread.o: ../../threads/thread.c ../../include/threads/thread.h \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/bitmap.h ../../include/threads/malloc.h \
- ../../include/lib/random.h ../../include/lib/stdio.h \
- ../../include/lib/stdarg.h ../../include/lib/kernel/stdio.h \
- ../../include/lib/string.h ../../include/threads/flags.h \
- ../../include/threads/intr-stubs.h ../../include/threads/vaddr.h \
- ../../include/threads/loader.h ../../include/intrinsic.h \
- ../../include/threads/mmu.h ../../include/threads/pte.h \
- ../../include/userprog/process.h ../../include/lib/fixed_point.h
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
+ ../../include/threads/malloc.h ../../include/lib/random.h \
+ ../../include/lib/stdio.h ../../include/lib/stdarg.h \
+ ../../include/lib/kernel/stdio.h ../../include/lib/string.h \
+ ../../include/threads/flags.h ../../include/threads/intr-stubs.h \
+ ../../include/threads/vaddr.h ../../include/threads/loader.h \
+ ../../include/intrinsic.h ../../include/threads/mmu.h \
+ ../../include/threads/pte.h ../../include/userprog/process.h \
+ ../../include/lib/fixed_point.h

@@ -149,7 +149,6 @@ dir_add (struct dir *dir, const char *name, disk_sector_t inode_sector) {
 	 * read due to something intermittent such as low memory. */
 	for (ofs = 0; inode_read_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
 			ofs += sizeof e){
-		printf("ofs : %d\n", ofs);
 		if (!e.in_use)
 			break;
 	}
@@ -215,4 +214,59 @@ dir_readdir (struct dir *dir, char name[NAME_MAX + 1]) {
 		}
 	}
 	return false;
+}
+
+//my implement function
+
+bool
+dir_add_myself(struct dir *dir){
+	if(dir == NULL) return false;
+	return dir_add(dir, ".", inode_get_inumber(dir_get_inode(dir)));
+}
+
+bool
+dir_add_parent(struct dir *dir, struct dir *parent_dir){
+	if (dir == NULL || parent_dir == NULL) return false;
+	return dir_add(dir, "..", inode_get_inumber(dir_get_inode(parent_dir)));
+}
+
+void
+directory_tokenize(const char *dir, int *argc, char *argv[]){
+	char *token, *save_ptr;
+	int i = 0;
+	for(token = strtok_r(dir, "/", &save_ptr); token != NULL; token = strtok_r(NULL, "/", &save_ptr)){
+		argv[i++] = token;
+	}
+	*argc = i;
+}
+
+bool
+change_directory(const char *dir, int argc, char *argv[], struct dir** dirp, off_t ofs){
+	struct dir *curDir = (dir[0] == '/') ? dir_open_root() : dir_reopen(*dirp);
+	struct inode *inode = NULL;
+	if(argc == 0){
+		dir_close(curDir);
+		if(ofs >= 1) return false;
+
+		*dirp = dir_open_root();
+		return true;
+	}
+
+	for(int i=0; i<argc-ofs; i++){
+		if(dir_lookup(curDir, argv[i], &inode)){
+			struct dir *nextDir = dir_open(inode);
+			if(nextDir == NULL){
+				dir_close(curDir);
+				return false;
+			}
+			dir_close(curDir);
+			curDir = nextDir;
+		} else{
+			dir_close(curDir);
+			return false;
+		}
+	}
+	dir_close(*dirp);
+	*dirp = curDir;
+	return true;
 }

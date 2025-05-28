@@ -25,7 +25,11 @@
 #include "vm/vm.h"
 #endif
 
+#ifdef EFILESYS
+#include "filesys/inode.h"
+#endif
 
+struct dir;
 
 /* States in a thread's life cycle. */
 enum thread_status {
@@ -138,6 +142,10 @@ struct thread {
 	struct hash mmap_table;
 	void *user_rsp;
 	struct lock *swap_lock;
+#endif
+
+#ifdef EFILESYS
+	struct dir *cwd;
 #endif
 
 	/* Owned by thread.c. */

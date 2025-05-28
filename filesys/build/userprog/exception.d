@@ -13,5 +13,6 @@ userprog/exception.o: ../../userprog/exception.c \
  ../../include/vm/file.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/intrinsic.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h
+ ../../include/filesys/inode.h ../../include/intrinsic.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h

@@ -52,6 +52,10 @@ process_init (void) {
 	curThread->num_files = 0;
 
 	curThread->running_file = NULL;
+
+#ifdef EFILESYS
+	curThread->cwd = dir_open_root();
+#endif
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
@@ -246,7 +250,6 @@ int
 process_exec (void *f_name) {
 	char *file_name = f_name;
 	bool success;
-
 	/* We cannot use the intr_frame in the thread structure.
 	 * This is because when current thread rescheduled,
 	 * it stores the execution information to the member. */

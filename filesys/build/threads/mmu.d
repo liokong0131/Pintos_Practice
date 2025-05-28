@@ -12,5 +12,5 @@ threads/mmu.o: ../../threads/mmu.c ../../include/lib/stdbool.h \
  ../../include/vm/file.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/threads/mmu.h ../../include/intrinsic.h \
- ../../include/threads/mmu.h
+ ../../include/filesys/inode.h ../../include/threads/mmu.h \
+ ../../include/intrinsic.h ../../include/threads/mmu.h
