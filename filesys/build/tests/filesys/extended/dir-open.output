@@ -1,0 +1,41 @@
+Kernel command line: -q -f put dir-open put tar run dir-open
+0 ~ 9fc00 1
+100000 ~ 13e0000 1
+Pintos booting with: 
+	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
+	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 224 sector (112 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
+Formatting file system...done.
+Boot complete.
+Putting 'dir-open' into the file system...
+Putting 'tar' into the file system...
+Executing 'dir-open':
+(dir-open) begin
+(dir-open) mkdir "xyzzy"
+(dir-open) open "xyzzy"
+(dir-open) write "xyzzy"
+(dir-open) write "xyzzy" (must return -1, actually 6)
+(dir-open) write "xyzzy" (must return -1, actually 6): FAILED
+dir-open: exit(1)
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421d6fe
+ cr2=000000009a548eed error=               0
+rax 000000009a548eed rbx 000000004747feb0 rcx 0000000000000010 rdx 0000000000001000
+rsp 000000800424fe90 rbp 000000800424fea0 rsi 000000800424d078 rdi 000000009a548eed
+rip 000000800421d6fe r8 000000800424fdc8  r9 0000008004217b15 r10 0000000000000000
+r11 0000000000000202 r12 0000008004219af4 r13 0000800420ab9100 r14 0000800424ff2000
+r15 0000010000000000 rflags 00000206
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x800421469c 0x8004219890 0x80042199bc 0x8004209952 0x8004209d70 0x8004218511 0x8004207317 0x8004219f4e 0x8004219b75 0x8004219a33 0x40044d 0x40021c 0x400f05 0x400f4e 0Interrupt 0x0d (#GP General Protection Exception) at rip=80042116d6
+ cr2=000000009a548eed error=               0
+rax 0000800422f69000 rbx 000000004747feb0 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 000000800424fc90 rbp 000000800424fca0 rsi 000000000000930f rdi 0000000000000000
+rip 00000080042116d6 r8 000000800424fba8  r9 0000008004217b15 r10 0000000000000000
+r11 0000000000000202 r12 0000008004219af4 r13 0000800420ab9100 r14 0000800424ff2000
+r15 0000010000000000 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().

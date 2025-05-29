@@ -13,4 +13,5 @@ tests/threads/priority-donate-multiple2.o: \
  ../../include/lib/inttypes.h ../../include/vm/file.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
+ ../../include/filesys/directory.h

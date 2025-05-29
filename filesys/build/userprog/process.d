@@ -11,11 +11,11 @@ userprog/process.o: ../../userprog/process.c \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
- ../../include/lib/round.h ../../include/lib/stdio.h \
- ../../include/lib/stdarg.h ../../include/lib/kernel/stdio.h \
- ../../include/lib/stdlib.h ../../include/lib/string.h \
- ../../include/userprog/gdt.h ../../include/threads/loader.h \
- ../../include/userprog/tss.h ../../include/filesys/directory.h \
+ ../../include/filesys/directory.h ../../include/lib/round.h \
+ ../../include/lib/stdio.h ../../include/lib/stdarg.h \
+ ../../include/lib/kernel/stdio.h ../../include/lib/stdlib.h \
+ ../../include/lib/string.h ../../include/userprog/gdt.h \
+ ../../include/threads/loader.h ../../include/userprog/tss.h \
  ../../include/filesys/filesys.h ../../include/threads/flags.h \
  ../../include/threads/init.h ../../include/threads/mmu.h \
  ../../include/threads/pte.h ../../include/threads/vaddr.h \

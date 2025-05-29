@@ -1,0 +1,4 @@
+FAIL
+Kernel panic in file system extraction run: PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x800421469c 0x8004219890 0x80042199bc 0x8004209952 0x8004209d70 0x8004216e67 0x8004223a32 0x800422405a 0x8004219987 0x8004209952 0x8004209d70 0x800421c974 0x800421e25d 0x800421d60f 0x800421b8db 0x8004206151
+Translation of call stack:

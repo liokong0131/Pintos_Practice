@@ -14,4 +14,5 @@ tests/threads/alarm-simultaneous.o: \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
- ../../include/devices/timer.h ../../include/lib/round.h
+ ../../include/filesys/directory.h ../../include/devices/timer.h \
+ ../../include/lib/round.h

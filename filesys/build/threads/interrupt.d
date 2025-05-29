@@ -13,8 +13,9 @@ threads/interrupt.o: ../../threads/interrupt.c \
  ../../include/vm/file.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/filesys/inode.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/threads/loader.h ../../include/devices/timer.h \
- ../../include/lib/round.h ../../include/intrinsic.h \
- ../../include/threads/mmu.h ../../include/userprog/gdt.h
+ ../../include/filesys/inode.h ../../include/filesys/directory.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/threads/loader.h \
+ ../../include/devices/timer.h ../../include/lib/round.h \
+ ../../include/intrinsic.h ../../include/threads/mmu.h \
+ ../../include/userprog/gdt.h

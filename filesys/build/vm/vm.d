@@ -11,6 +11,6 @@ vm/vm.o: ../../vm/vm.c ../../include/lib/string.h \
  ../../include/lib/kernel/bitmap.h ../../include/threads/thread.h \
  ../../include/lib/kernel/list.h ../../include/threads/interrupt.h \
  ../../include/threads/synch.h ../../include/filesys/inode.h \
- ../../include/vm/inspect.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/threads/loader.h
+ ../../include/filesys/directory.h ../../include/vm/inspect.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/threads/loader.h

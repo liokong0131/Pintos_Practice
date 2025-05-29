@@ -11,6 +11,7 @@ userprog/gdt.o: ../../userprog/gdt.c ../../include/userprog/gdt.h \
  ../../include/vm/file.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/filesys/inode.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/intrinsic.h ../../include/threads/mmu.h
+ ../../include/filesys/inode.h ../../include/filesys/directory.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/intrinsic.h \
+ ../../include/threads/mmu.h

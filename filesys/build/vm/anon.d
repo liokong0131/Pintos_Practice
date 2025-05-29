@@ -10,6 +10,6 @@ vm/anon.o: ../../vm/anon.c ../../include/vm/vm.h \
  ../../include/threads/thread.h ../../include/lib/debug.h \
  ../../include/lib/kernel/list.h ../../include/threads/interrupt.h \
  ../../include/threads/synch.h ../../include/filesys/inode.h \
- ../../include/threads/malloc.h ../../include/threads/mmu.h \
- ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/threads/loader.h
+ ../../include/filesys/directory.h ../../include/threads/malloc.h \
+ ../../include/threads/mmu.h ../../include/threads/pte.h \
+ ../../include/threads/vaddr.h ../../include/threads/loader.h

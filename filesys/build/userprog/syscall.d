@@ -13,9 +13,9 @@ userprog/syscall.o: ../../userprog/syscall.c \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
- ../../include/threads/loader.h ../../include/userprog/gdt.h \
- ../../include/threads/flags.h ../../include/intrinsic.h \
- ../../include/threads/mmu.h ../../include/threads/pte.h \
- ../../include/threads/vaddr.h ../../include/userprog/process.h \
- ../../include/filesys/filesys.h ../../include/filesys/directory.h \
+ ../../include/filesys/directory.h ../../include/threads/loader.h \
+ ../../include/userprog/gdt.h ../../include/threads/flags.h \
+ ../../include/intrinsic.h ../../include/threads/mmu.h \
+ ../../include/threads/pte.h ../../include/threads/vaddr.h \
+ ../../include/userprog/process.h ../../include/filesys/filesys.h \
  ../../include/filesys/fat.h

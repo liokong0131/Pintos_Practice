@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 353 sector (176 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 220 sector (110 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -24,17 +24,21 @@ Executing 'rox-child':
 (child-rox) try to write "child-rox"
 (child-rox) end
 child-rox: exit(12)
-(rox-child) write "child-rox"
-(rox-child) end
-rox-child: exit(0)
-Execution of 'rox-child' complete.
-Timer: 107 ticks
-Thread: 53 idle ticks, 51 kernel ticks, 3 user ticks
-hd0:0: 0 reads, 0 writes
-hd0:1: 317 reads, 761 writes
-hd1:0: 220 reads, 0 writes
-hd1:1: 0 reads, 0 writes
-Console: 1285 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-Powering off...
+Interrupt 0x0d (#GP General Protection Exception) at rip=800421d6fe
+ cr2=0000000000402269 error=               0
+rax cccccccccccccccc rbx 000000004747ff58 rcx 0000000000000010 rdx 0000000000001000
+rsp 0000008004279e90 rbp 0000008004279ea0 rsi 000000800426b088 rdi cccccccccccccccc
+rip 000000800421d6fe r8 0000008004279dc8  r9 0000008004217b15 r10 0000000000000000
+r11 0000000000000202 r12 0000008004219af4 r13 0000010426d00000 r14 00008004279e5000
+r15 00008004208ac500 rflags 00000286
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x800421469c 0x8004219890 0x8004209952 0x8004209d70 0x8004218511 0x8004207317 0x8004219f4e 0x8004219b75 0x8004219a33 0x400e83 0Interrupt 0x0d (#GP General Protection Exception) at rip=80042116d6
+ cr2=0000000000402269 error=               0
+rax 0000800428200000 rbx 000000004747ff58 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004279cd0 rbp 0000008004279ce0 rsi 000000000000bb0f rdi 0000000000000000
+rip 00000080042116d6 r8 0000008004279be8  r9 0000008004217b15 r10 0000000000000000
+r11 0000000000000202 r12 0000008004219af4 r13 0000010426d00000 r14 00008004279e5000
+r15 00008004208ac500 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().

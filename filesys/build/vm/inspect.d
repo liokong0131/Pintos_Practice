@@ -10,6 +10,6 @@ vm/inspect.o: ../../vm/inspect.c ../../include/threads/interrupt.h \
  ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
  ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
  ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
- ../../include/threads/mmu.h ../../include/threads/pte.h \
- ../../include/threads/vaddr.h ../../include/threads/loader.h \
- ../../include/vm/inspect.h
+ ../../include/filesys/directory.h ../../include/threads/mmu.h \
+ ../../include/threads/pte.h ../../include/threads/vaddr.h \
+ ../../include/threads/loader.h ../../include/vm/inspect.h
