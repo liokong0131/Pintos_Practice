@@ -21,8 +21,8 @@ Executing 'bc-easy':
 (bc-easy) file content mismatch in 2 : ffffff89 18: FAILED
 bc-easy: exit(1)
 Execution of 'bc-easy' complete.
-Timer: 100 ticks
-Thread: 48 idle ticks, 50 kernel ticks, 2 user ticks
+Timer: 102 ticks
+Thread: 48 idle ticks, 51 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 210 reads, 546 writes
 hd1:0: 228 reads, 0 writes

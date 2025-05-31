@@ -5,11 +5,11 @@ threads/synch.o: ../../threads/synch.c ../../include/threads/synch.h \
  ../../include/lib/stdarg.h ../../include/lib/kernel/stdio.h \
  ../../include/lib/string.h ../../include/threads/interrupt.h \
  ../../include/threads/thread.h ../../include/filesys/file.h \
- ../../include/filesys/off_t.h ../../include/vm/vm.h \
- ../../include/threads/palloc.h ../../include/vm/uninit.h \
- ../../include/vm/anon.h ../../include/devices/disk.h \
- ../../include/lib/inttypes.h ../../include/vm/file.h \
- ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
- ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/bitmap.h ../../include/filesys/inode.h \
+ ../../include/filesys/off_t.h ../../include/filesys/inode.h \
+ ../../include/devices/disk.h ../../include/lib/inttypes.h \
+ ../../include/vm/vm.h ../../include/threads/palloc.h \
+ ../../include/vm/uninit.h ../../include/vm/anon.h \
+ ../../include/vm/file.h ../../include/lib/kernel/hash.h \
+ ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
  ../../include/filesys/directory.h

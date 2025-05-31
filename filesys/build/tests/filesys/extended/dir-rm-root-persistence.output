@@ -5,22 +5,19 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0xffe0000 (Usable: 260,992 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 2,048 sector (1024 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=0
- cr2=0000000000000000 error=               0
-rax 0000000000000000 rbx 0000000000204400 rcx 0000000000000000 rdx 0000008004000d08
-rsp 0000008004000c88 rbp 0000008004000cb0 rsi 0000000000000000 rdi 0000008004000d08
-rip 0000000000000000 r8 0000000000000001  r9 000000000420a019 r10 0000000000000000
-r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
-r15 0000000000000000 rflags 00200206
-es: 0010 ds: 0010 cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x800421469c 0x8004219890 0x80042199bc 0x8004209952 0x8004209d70 0x8004216e67 0x8004223a32 0x800422405a 0x8004219987 0x8004209952 0x8004209d70 0x800421c974 0x800421e25d 0x800421d60f 0x800421b8db 0x8004206151.
+Boot complete.
+Executing 'tar fs.tar /':
+error writing archive
+tar: exit(1)
+Execution of 'tar' complete.
+Getting 'fs.tar' from the file system...
+Kernel PANIC at ../../filesys/fsutil.c:182 in fsutil_get(): fs.tar: read failed with 128 bytes unread
+Call stack: 0x800421469c 0x800421fc79 0x80042068ea 0x8004206186.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
 Kernel PANIC recursion at ../../devices/timer.c:186 in real_time_sleep().
-bad signature on scratch disk

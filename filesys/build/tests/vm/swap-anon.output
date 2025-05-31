@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x9e0000 (Usable: 9,088 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 104 sector (52 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 60,480 sector (29 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -37,10 +37,10 @@ Executing 'swap-anon':
 (swap-anon) end
 swap-anon: exit(0)
 Execution of 'swap-anon' complete.
-Timer: 3559 ticks
-Thread: 1923 idle ticks, 55 kernel ticks, 1581 user ticks
+Timer: 3724 ticks
+Thread: 2097 idle ticks, 59 kernel ticks, 1568 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 271 reads, 529 writes
+hd0:1: 428 reads, 849 writes
 hd1:0: 104 reads, 0 writes
 hd1:1: 41064 reads, 72368 writes
 Console: 1804 characters output

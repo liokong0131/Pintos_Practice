@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 220 sector (110 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -36,21 +36,29 @@ Executing 'rox-multichild':
 (child-rox) try to write "child-rox"
 (child-rox) end
 child-rox: exit(12)
-Interrupt 0x0d (#GP General Protection Exception) at rip=800421d6fe
- cr2=0000000000402269 error=               0
-rax cccccccccccccccc rbx 000000004747ff58 rcx 0000000000000010 rdx 0000000000001000
-rsp 000000800429ee90 rbp 000000800429eea0 rsi 000000800426b148 rdi cccccccccccccccc
-rip 000000800421d6fe r8 000000800429edc8  r9 0000008004217b15 r10 0000000000000000
-r11 0000000000000202 r12 0000008004219af4 r13 0000010429500000 r14 0000800429ee5000
-r15 00008004208ac500 rflags 00000286
-es: 001b ds: 001b cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x800421469c 0x8004219890 0x8004209952 0x8004209d70 0x8004218511 0x8004207317 0x8004219f4e 0x8004219b75 0x8004219a33 0x400e83 0Interrupt 0x0d (#GP General Protection Exception) at rip=80042116d6
- cr2=0000000000402269 error=               0
-rax 000080042a700000 rbx 000000004747ff58 rcx 00000080040b8000 rdx 00000000000003d4
-rsp 000000800429ecd0 rbp 000000800429ece0 rsi 000000000000bb0f rdi 0000000000000000
-rip 00000080042116d6 r8 000000800429ebe8  r9 0000008004217b15 r10 0000000000000000
-r11 0000000000000202 r12 0000008004219af4 r13 0000010429500000 r14 0000800429ee5000
-r15 00008004208ac500 rflags 00000006
-es: 0010 ds: 0010 cs: 0008 ss: 0010
-Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(rox-multichild) write "child-rox"
+(rox-multichild) end
+rox-multichild: exit(0)
+Execution of 'rox-multichild' complete.
+Timer: 138 ticks
+Thread: 70 idle ticks, 55 kernel ticks, 13 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 786 reads, 1087 writes
+hd1:0: 220 reads, 0 writes
+hd1:1: 0 reads, 0 writes
+Console: 1988 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

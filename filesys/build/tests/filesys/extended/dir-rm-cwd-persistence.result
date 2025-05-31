@@ -1,2 +1,4 @@
 FAIL
-Prerequisite test tests/filesys/extended/dir-rm-cwd failed.
+Kernel panic in file system extraction run: PANIC at ../../filesys/fsutil.c:182 in fsutil_get(): fs.tar: read failed with 128 bytes unread
+Call stack: 0x800421469c 0x800421fc79 0x80042068ea 0x8004206186
+Translation of call stack:

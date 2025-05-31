@@ -4,8 +4,8 @@ Kernel command line: -q -f put mmap-inherit put sample.txt put child-inherit run
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  157,081,600 loops/s.
-hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 215 sector (107 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -21,21 +21,17 @@ Executing 'mmap-inherit':
 (mmap-inherit) exec "child-inherit"
 (child-inherit) begin
 child-inherit: exit(-1)
-Interrupt 0x0d (#GP General Protection Exception) at rip=800421d6fe
- cr2=0000000054321000 error=               0
-rax cccccccccccccccc rbx 000000004045a6ff rcx 0000000000000010 rdx 0000000000001000
-rsp 000000800427be40 rbp 000000800427be50 rsi 000000800426b0b8 rdi cccccccccccccccc
-rip 000000800421d6fe r8 000000800427bd78  r9 0000008004217b15 r10 0000000000000000
-r11 0000000000000206 r12 0000800427be5000 r13 0000010426d00000 r14 0000800427be5000
-r15 00008004208ac500 rflags 00000286
-es: 0010 ds: 0010 cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x800421469c 0x8004219890 0x8004209952 0x8004209d70 0x8004218511 0x8004207317 0x8004219848 0x80042199bc 0x8004209952 0x8004209d70 0x400107 0x400bd5 0x400c1e 0Interrupt 0x0d (#GP General Protection Exception) at rip=80042116d6
- cr2=0000000054321000 error=               0
-rax 0000800428500000 rbx 000000004045a6ff rcx 00000080040b8000 rdx 00000000000003d4
-rsp 000000800427bc80 rbp 000000800427bc90 rsi 0000000000008a0f rdi 0000000000000000
-rip 00000080042116d6 r8 000000800427bb98  r9 0000008004217b15 r10 0000000000000000
-r11 0000000000000206 r12 0000800427be5000 r13 0000010426d00000 r14 0000800427be5000
-r15 00008004208ac500 rflags 00000006
-es: 0010 ds: 0010 cs: 0008 ss: 0010
-Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().
+(mmap-inherit) checking that mmap'd file still has same data
+(mmap-inherit) end
+mmap-inherit: exit(0)
+Execution of 'mmap-inherit' complete.
+Timer: 123 ticks
+Thread: 65 idle ticks, 53 kernel ticks, 5 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 563 reads, 1078 writes
+hd1:0: 215 reads, 0 writes
+hd1:1: 0 reads, 0 writes
+Console: 1310 characters output
+Keyboard: 0 keys pressed
+Exception: 1 page faults
+Powering off...

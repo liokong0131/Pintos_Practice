@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 361 sector (180 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 216 sector (108 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -82,17 +82,16 @@ child-sort: exit(123)
 (page-merge-seq) child[15] wait success
 (page-merge-seq) merge
 (page-merge-seq) verify
-(page-merge-seq) success, buf_idx=1,032,192
-(page-merge-seq) end
-page-merge-seq: exit(0)
+(page-merge-seq) bad value 18 in byte 0: FAILED
+page-merge-seq: exit(1)
 Execution of 'page-merge-seq' complete.
-Timer: 562 ticks
-Thread: 215 idle ticks, 74 kernel ticks, 273 user ticks
+Timer: 550 ticks
+Thread: 192 idle ticks, 76 kernel ticks, 282 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 5158 reads, 4913 writes
+hd0:1: 5315 reads, 3284 writes
 hd1:0: 216 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 3138 characters output
+Console: 3121 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

@@ -4,13 +4,13 @@ userprog/tss.o: ../../userprog/tss.c ../../include/userprog/tss.h \
  ../../include/lib/stdbool.h ../../include/lib/stddef.h \
  ../../include/threads/interrupt.h ../../include/threads/synch.h \
  ../../include/filesys/file.h ../../include/filesys/off_t.h \
- ../../include/vm/vm.h ../../include/threads/palloc.h \
- ../../include/vm/uninit.h ../../include/vm/anon.h \
- ../../include/devices/disk.h ../../include/lib/inttypes.h \
- ../../include/vm/file.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
- ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/filesys/inode.h ../../include/filesys/directory.h \
+ ../../include/filesys/inode.h ../../include/devices/disk.h \
+ ../../include/lib/inttypes.h ../../include/vm/vm.h \
+ ../../include/threads/palloc.h ../../include/vm/uninit.h \
+ ../../include/vm/anon.h ../../include/vm/file.h \
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
+ ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/directory.h \
  ../../include/userprog/gdt.h ../../include/threads/loader.h \
  ../../include/threads/vaddr.h ../../include/intrinsic.h \
  ../../include/threads/mmu.h ../../include/threads/pte.h

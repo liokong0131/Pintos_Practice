@@ -6,4 +6,5 @@ filesys/inode.o: ../../filesys/inode.c ../../include/filesys/inode.h \
  ../../include/lib/round.h ../../include/lib/string.h \
  ../../include/filesys/filesys.h ../../include/filesys/free-map.h \
  ../../include/threads/malloc.h ../../include/filesys/fat.h \
- ../../include/filesys/file.h
+ ../../include/filesys/file.h ../../include/lib/kernel/hash.h \
+ ../../include/lib/kernel/list.h
