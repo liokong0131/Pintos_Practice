@@ -38,7 +38,7 @@ Executing 'symlink-link':
 symlink-link: exit(0)
 Execution of 'symlink-link' complete.
 Timer: 137 ticks
-Thread: 74 idle ticks, 51 kernel ticks, 12 user ticks
+Thread: 66 idle ticks, 52 kernel ticks, 20 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 1025 reads, 794 writes
 hd1:0: 228 reads, 0 writes

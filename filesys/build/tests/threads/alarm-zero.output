@@ -16,7 +16,7 @@ Executing 'alarm-zero':
 (alarm-zero) end
 Execution of 'alarm-zero' complete.
 Timer: 96 ticks
-Thread: 50 idle ticks, 46 kernel ticks, 0 user ticks
+Thread: 49 idle ticks, 48 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 353 reads, 637 writes
 hd1:1: 0 reads, 0 writes

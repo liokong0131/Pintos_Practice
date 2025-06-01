@@ -24,7 +24,7 @@ Executing 'dir-rm-parent':
 dir-rm-parent: exit(0)
 Execution of 'dir-rm-parent' complete.
 Timer: 108 ticks
-Thread: 55 idle ticks, 47 kernel ticks, 6 user ticks
+Thread: 55 idle ticks, 49 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 359 reads, 615 writes
 hd1:0: 225 reads, 0 writes

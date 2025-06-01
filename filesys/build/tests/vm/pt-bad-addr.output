@@ -16,8 +16,8 @@ Executing 'pt-bad-addr':
 (pt-bad-addr) begin
 pt-bad-addr: exit(-1)
 Execution of 'pt-bad-addr' complete.
-Timer: 108 ticks
-Thread: 60 idle ticks, 47 kernel ticks, 1 user ticks
+Timer: 106 ticks
+Thread: 51 idle ticks, 53 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 428 reads, 847 writes
 hd1:0: 102 reads, 0 writes

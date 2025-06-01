@@ -1,2 +1,4 @@
 FAIL
-Prerequisite test tests/filesys/extended/grow-sparse failed.
+Kernel panic in file system extraction run: PANIC at ../../filesys/fsutil.c:162 in fsutil_get(): fs.tar: open failed
+Call stack: 0x80042146ba 0x80042200e9 0x80042068ea 0x8004206186
+Translation of call stack:

@@ -103,7 +103,7 @@ pass tests/filesys/extended/dir-rm-root
 pass tests/filesys/extended/dir-rm-tree
 pass tests/filesys/extended/dir-rmdir
 pass tests/filesys/extended/dir-under-file
-FAIL tests/filesys/extended/dir-vine
+pass tests/filesys/extended/dir-vine
 pass tests/filesys/extended/grow-create
 pass tests/filesys/extended/grow-dir-lg
 pass tests/filesys/extended/grow-file-size
@@ -111,10 +111,10 @@ pass tests/filesys/extended/grow-root-lg
 pass tests/filesys/extended/grow-root-sm
 pass tests/filesys/extended/grow-seq-lg
 pass tests/filesys/extended/grow-seq-sm
-FAIL tests/filesys/extended/grow-sparse
+pass tests/filesys/extended/grow-sparse
 pass tests/filesys/extended/grow-tell
 pass tests/filesys/extended/grow-two-files
-FAIL tests/filesys/extended/syn-rw
+pass tests/filesys/extended/syn-rw
 pass tests/filesys/extended/symlink-file
 pass tests/filesys/extended/symlink-dir
 pass tests/filesys/extended/symlink-link

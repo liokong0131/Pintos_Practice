@@ -19,17 +19,17 @@ Executing 'page-parallel':
 child-linear: exit(66)
 (page-parallel) wait for child 1
 child-linear: exit(66)
-child-linear: exit(66)
-child-linear: exit(66)
 (page-parallel) wait for child 2
+child-linear: exit(66)
 (page-parallel) wait for child 3
+child-linear: exit(66)
 (page-parallel) end
 page-parallel: exit(0)
 Execution of 'page-parallel' complete.
-Timer: 223 ticks
-Thread: 60 idle ticks, 64 kernel ticks, 99 user ticks
+Timer: 214 ticks
+Thread: 62 idle ticks, 60 kernel ticks, 92 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 586 reads, 1066 writes
+hd0:1: 589 reads, 1069 writes
 hd1:0: 209 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1272 characters output

@@ -22,8 +22,8 @@ Executing 'sm-random':
 (sm-random) end
 sm-random: exit(0)
 Execution of 'sm-random' complete.
-Timer: 122 ticks
-Thread: 59 idle ticks, 57 kernel ticks, 6 user ticks
+Timer: 120 ticks
+Thread: 64 idle ticks, 50 kernel ticks, 6 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 707 reads, 997 writes
 hd1:0: 110 reads, 0 writes

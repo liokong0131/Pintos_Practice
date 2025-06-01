@@ -22,7 +22,7 @@ Executing 'priority-donate-lower':
 (priority-donate-lower) end
 Execution of 'priority-donate-lower' complete.
 Timer: 97 ticks
-Thread: 51 idle ticks, 46 kernel ticks, 0 user ticks
+Thread: 49 idle ticks, 48 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 353 reads, 637 writes
 hd1:1: 0 reads, 0 writes

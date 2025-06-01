@@ -20,7 +20,7 @@ Executing 'priority-change':
 (priority-change) end
 Execution of 'priority-change' complete.
 Timer: 96 ticks
-Thread: 47 idle ticks, 49 kernel ticks, 0 user ticks
+Thread: 42 idle ticks, 54 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 353 reads, 637 writes
 hd1:1: 0 reads, 0 writes

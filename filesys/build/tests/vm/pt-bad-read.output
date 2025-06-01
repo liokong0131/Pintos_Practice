@@ -19,7 +19,7 @@ Executing 'pt-bad-read':
 pt-bad-read: exit(-1)
 Execution of 'pt-bad-read' complete.
 Timer: 109 ticks
-Thread: 53 idle ticks, 54 kernel ticks, 2 user ticks
+Thread: 48 idle ticks, 61 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 462 reads, 860 writes
 hd1:0: 106 reads, 0 writes

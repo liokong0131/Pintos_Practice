@@ -20,8 +20,8 @@ Executing 'dir-over-file':
 (dir-over-file) end
 dir-over-file: exit(0)
 Execution of 'dir-over-file' complete.
-Timer: 107 ticks
-Thread: 55 idle ticks, 51 kernel ticks, 1 user ticks
+Timer: 104 ticks
+Thread: 51 idle ticks, 51 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 273 reads, 603 writes
 hd1:0: 224 reads, 0 writes

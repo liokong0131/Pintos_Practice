@@ -19,16 +19,20 @@ Executing 'grow-sparse':
 (grow-sparse) open "testfile"
 (grow-sparse) seek "testfile"
 (grow-sparse) write "testfile"
-(grow-sparse) write "testfile": FAILED
-grow-sparse: exit(1)
+(grow-sparse) close "testfile"
+(grow-sparse) open "testfile" for verification
+(grow-sparse) verified contents of "testfile"
+(grow-sparse) close "testfile"
+(grow-sparse) end
+grow-sparse: exit(0)
 Execution of 'grow-sparse' complete.
-Timer: 103 ticks
-Thread: 52 idle ticks, 48 kernel ticks, 3 user ticks
+Timer: 106 ticks
+Thread: 47 idle ticks, 55 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 236 reads, 600 writes
+hd0:1: 246 reads, 602 writes
 hd1:0: 225 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1155 characters output
+Console: 1289 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

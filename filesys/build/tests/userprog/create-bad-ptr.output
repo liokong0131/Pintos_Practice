@@ -16,8 +16,8 @@ Executing 'create-bad-ptr':
 (create-bad-ptr) begin
 create-bad-ptr: exit(-1)
 Execution of 'create-bad-ptr' complete.
-Timer: 109 ticks
-Thread: 54 idle ticks, 54 kernel ticks, 1 user ticks
+Timer: 107 ticks
+Thread: 56 idle ticks, 50 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 428 reads, 849 writes
 hd1:0: 103 reads, 0 writes
