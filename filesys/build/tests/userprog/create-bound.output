@@ -18,10 +18,10 @@ Executing 'create-bound':
 (create-bound) end
 create-bound: exit(0)
 Execution of 'create-bound' complete.
-Timer: 109 ticks
-Thread: 64 idle ticks, 44 kernel ticks, 1 user ticks
+Timer: 110 ticks
+Thread: 51 idle ticks, 56 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 449 reads, 853 writes
+hd0:1: 449 reads, 855 writes
 hd1:0: 105 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1010 characters output

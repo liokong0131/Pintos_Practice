@@ -22,10 +22,10 @@ Executing 'grow-sparse':
 (grow-sparse) write "testfile": FAILED
 grow-sparse: exit(1)
 Execution of 'grow-sparse' complete.
-Timer: 106 ticks
-Thread: 53 idle ticks, 49 kernel ticks, 4 user ticks
+Timer: 103 ticks
+Thread: 52 idle ticks, 48 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 236 reads, 597 writes
+hd0:1: 236 reads, 600 writes
 hd1:0: 225 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1155 characters output

@@ -68,10 +68,10 @@ Executing 'grow-root-lg':
 (grow-root-lg) end
 grow-root-lg: exit(0)
 Execution of 'grow-root-lg' complete.
-Timer: 302 ticks
-Thread: 175 idle ticks, 50 kernel ticks, 77 user ticks
+Timer: 301 ticks
+Thread: 161 idle ticks, 49 kernel ticks, 91 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 6424 reads, 896 writes
+hd0:1: 6424 reads, 949 writes
 hd1:0: 225 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 3312 characters output

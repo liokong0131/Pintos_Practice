@@ -16,15 +16,34 @@ Putting 'tar' into the file system...
 Executing 'symlink-link':
 (symlink-link) begin
 (symlink-link) create symlink "link_a"
-symlink-link: exit(-1)
+(symlink-link) create symlink "link_b"
+(symlink-link) create symlink "link_c"
+(symlink-link) create "file"
+(symlink-link) open "link_c"
+(symlink-link) write "link_c"
+(symlink-link) close "link_c"
+(symlink-link) open "file" for verification
+(symlink-link) verified contents of "file"
+(symlink-link) close "file"
+(symlink-link) open "link_a" for verification
+(symlink-link) verified contents of "link_a"
+(symlink-link) close "link_a"
+(symlink-link) open "link_b" for verification
+(symlink-link) verified contents of "link_b"
+(symlink-link) close "link_b"
+(symlink-link) open "link_c" for verification
+(symlink-link) verified contents of "link_c"
+(symlink-link) close "link_c"
+(symlink-link) end
+symlink-link: exit(0)
 Execution of 'symlink-link' complete.
-Timer: 103 ticks
-Thread: 56 idle ticks, 45 kernel ticks, 2 user ticks
+Timer: 137 ticks
+Thread: 74 idle ticks, 51 kernel ticks, 12 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 210 reads, 600 writes
+hd0:1: 1025 reads, 794 writes
 hd1:0: 228 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1040 characters output
+Console: 1734 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

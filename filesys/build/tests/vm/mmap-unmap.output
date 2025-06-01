@@ -24,7 +24,7 @@ Execution of 'mmap-unmap' complete.
 Timer: 110 ticks
 Thread: 53 idle ticks, 55 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 465 reads, 862 writes
+hd0:1: 465 reads, 865 writes
 hd1:0: 109 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1147 characters output

@@ -115,9 +115,9 @@ FAIL tests/filesys/extended/grow-sparse
 pass tests/filesys/extended/grow-tell
 pass tests/filesys/extended/grow-two-files
 FAIL tests/filesys/extended/syn-rw
-FAIL tests/filesys/extended/symlink-file
-FAIL tests/filesys/extended/symlink-dir
-FAIL tests/filesys/extended/symlink-link
+pass tests/filesys/extended/symlink-file
+pass tests/filesys/extended/symlink-dir
+pass tests/filesys/extended/symlink-link
 pass tests/vm/pt-grow-stack
 pass tests/vm/pt-grow-bad
 pass tests/vm/pt-big-stk-obj
@@ -128,7 +128,7 @@ pass tests/vm/pt-write-code2
 pass tests/vm/pt-grow-stk-sc
 pass tests/vm/page-linear
 pass tests/vm/page-parallel
-FAIL tests/vm/page-merge-seq
+pass tests/vm/page-merge-seq
 pass tests/vm/page-merge-par
 pass tests/vm/page-merge-stk
 pass tests/vm/page-merge-mm

@@ -15,10 +15,10 @@ Executing 'alarm-zero':
 (alarm-zero) PASS
 (alarm-zero) end
 Execution of 'alarm-zero' complete.
-Timer: 97 ticks
-Thread: 42 idle ticks, 55 kernel ticks, 0 user ticks
+Timer: 96 ticks
+Thread: 50 idle ticks, 46 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 353 reads, 636 writes
+hd0:1: 353 reads, 637 writes
 hd1:1: 0 reads, 0 writes
 Console: 801 characters output
 Keyboard: 0 keys pressed

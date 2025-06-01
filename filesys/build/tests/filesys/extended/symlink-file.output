@@ -18,15 +18,31 @@ Executing 'symlink-file':
 (symlink-file) create "a"
 (symlink-file) create "b"
 (symlink-file) create symlink "link_a"
-symlink-file: exit(-1)
+(symlink-file) create symlink "link_b"
+(symlink-file) create symlink "link_c"
+(symlink-file) open "link_a"
+(symlink-file) open "link_b"
+(symlink-file) open "link_c"
+(symlink-file) write "link_a" and "link_b" alternately
+(symlink-file) close "link_a"
+(symlink-file) close "link_b"
+(symlink-file) close "link_c"
+(symlink-file) open "a" for verification
+(symlink-file) verified contents of "a"
+(symlink-file) close "a"
+(symlink-file) open "b" for verification
+(symlink-file) verified contents of "b"
+(symlink-file) close "b"
+(symlink-file) end
+symlink-file: exit(0)
 Execution of 'symlink-file' complete.
-Timer: 108 ticks
-Thread: 44 idle ticks, 58 kernel ticks, 6 user ticks
+Timer: 342 ticks
+Thread: 187 idle ticks, 49 kernel ticks, 106 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 257 reads, 608 writes
+hd0:1: 7427 reads, 1405 writes
 hd1:0: 230 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1092 characters output
+Console: 1637 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

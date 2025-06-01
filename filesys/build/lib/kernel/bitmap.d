@@ -6,4 +6,5 @@ lib/kernel/bitmap.o: ../../lib/kernel/bitmap.c \
  ../../include/lib/stdio.h ../../include/lib/stdarg.h \
  ../../include/lib/kernel/stdio.h ../../include/threads/malloc.h \
  ../../include/filesys/file.h ../../include/filesys/off_t.h \
- ../../include/filesys/inode.h ../../include/devices/disk.h
+ ../../include/filesys/inode.h ../../include/devices/disk.h \
+ ../../include/filesys/fat.h

@@ -19,9 +19,9 @@ Executing 'read-bad-ptr':
 read-bad-ptr: exit(-1)
 Execution of 'read-bad-ptr' complete.
 Timer: 110 ticks
-Thread: 57 idle ticks, 51 kernel ticks, 2 user ticks
+Thread: 54 idle ticks, 54 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 462 reads, 855 writes
+hd0:1: 462 reads, 858 writes
 hd1:0: 105 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1048 characters output

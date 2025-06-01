@@ -19,9 +19,9 @@ Executing 'mmap-bad-fd':
 mmap-bad-fd: exit(0)
 Execution of 'mmap-bad-fd' complete.
 Timer: 108 ticks
-Thread: 54 idle ticks, 51 kernel ticks, 3 user ticks
+Thread: 57 idle ticks, 49 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 428 reads, 847 writes
+hd0:1: 428 reads, 849 writes
 hd1:0: 103 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1002 characters output

@@ -23,10 +23,10 @@ Executing 'mmap-remove':
 (mmap-remove) end
 mmap-remove: exit(0)
 Execution of 'mmap-remove' complete.
-Timer: 116 ticks
-Thread: 62 idle ticks, 51 kernel ticks, 3 user ticks
+Timer: 115 ticks
+Thread: 53 idle ticks, 58 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 517 reads, 947 writes
+hd0:1: 517 reads, 951 writes
 hd1:0: 110 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1193 characters output

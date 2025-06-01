@@ -16,17 +16,17 @@ Putting 'child-swap' into the file system...
 Executing 'swap-fork':
 (swap-fork) begin
 (child-swap) begin
-child-swap: exit(0)
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
+(child-swap) begin
 (child-swap) begin
 child-swap: exit(0)
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
-(child-swap) begin
+child-swap: exit(0)
 child-swap: exit(0)
 child-swap: exit(0)
 child-swap: exit(0)
@@ -38,10 +38,10 @@ child-swap: exit(0)
 (swap-fork) end
 swap-fork: exit(0)
 Execution of 'swap-fork' complete.
-Timer: 671 ticks
-Thread: 260 idle ticks, 284 kernel ticks, 127 user ticks
+Timer: 674 ticks
+Thread: 271 idle ticks, 264 kernel ticks, 139 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 937 reads, 8885 writes
+hd0:1: 935 reads, 8886 writes
 hd1:0: 4119 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1410 characters output

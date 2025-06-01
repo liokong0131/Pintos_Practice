@@ -18,15 +18,23 @@ Executing 'symlink-dir':
 (symlink-dir) mkdir "/a"
 (symlink-dir) mkdir "a/b"
 (symlink-dir) create symlink "a/link_b"
-symlink-dir: exit(-1)
+(symlink-dir) create "a/link_b/file"
+(symlink-dir) open "file"
+(symlink-dir) write "file"
+(symlink-dir) close "file"
+(symlink-dir) open "a/b/file" for verification
+(symlink-dir) verified contents of "a/b/file"
+(symlink-dir) close "a/b/file"
+(symlink-dir) end
+symlink-dir: exit(0)
 Execution of 'symlink-dir' complete.
-Timer: 108 ticks
-Thread: 54 idle ticks, 50 kernel ticks, 4 user ticks
+Timer: 123 ticks
+Thread: 65 idle ticks, 49 kernel ticks, 9 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 334 reads, 611 writes
+hd0:1: 614 reads, 792 writes
 hd1:0: 227 reads, 0 writes
 hd1:1: 0 reads, 0 writes
-Console: 1085 characters output
+Console: 1343 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

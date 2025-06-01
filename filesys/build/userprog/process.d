@@ -6,12 +6,13 @@ userprog/process.o: ../../userprog/process.c \
  ../../include/threads/synch.h ../../include/filesys/file.h \
  ../../include/filesys/off_t.h ../../include/filesys/inode.h \
  ../../include/devices/disk.h ../../include/lib/inttypes.h \
- ../../include/vm/vm.h ../../include/threads/palloc.h \
- ../../include/vm/uninit.h ../../include/vm/anon.h \
- ../../include/vm/file.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
- ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/filesys/directory.h ../../include/lib/round.h \
+ ../../include/filesys/fat.h ../../include/vm/vm.h \
+ ../../include/threads/palloc.h ../../include/vm/uninit.h \
+ ../../include/vm/anon.h ../../include/vm/file.h \
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
+ ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/directory.h \
+ ../../include/filesys/symlink.h ../../include/lib/round.h \
  ../../include/lib/stdio.h ../../include/lib/stdarg.h \
  ../../include/lib/kernel/stdio.h ../../include/lib/stdlib.h \
  ../../include/lib/string.h ../../include/userprog/gdt.h \

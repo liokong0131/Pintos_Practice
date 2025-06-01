@@ -17,10 +17,10 @@ Executing 'open-missing':
 (open-missing) end
 open-missing: exit(0)
 Execution of 'open-missing' complete.
-Timer: 111 ticks
-Thread: 53 idle ticks, 57 kernel ticks, 1 user ticks
+Timer: 109 ticks
+Thread: 52 idle ticks, 55 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 444 reads, 847 writes
+hd0:1: 444 reads, 849 writes
 hd1:0: 103 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 973 characters output

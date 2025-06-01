@@ -31,10 +31,10 @@ Executing 'dir-rm-cwd':
 (dir-rm-cwd) end
 dir-rm-cwd: exit(0)
 Execution of 'dir-rm-cwd' complete.
-Timer: 109 ticks
-Thread: 49 idle ticks, 53 kernel ticks, 7 user ticks
+Timer: 108 ticks
+Thread: 50 idle ticks, 51 kernel ticks, 7 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 322 reads, 616 writes
+hd0:1: 336 reads, 620 writes
 hd1:0: 232 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1420 characters output

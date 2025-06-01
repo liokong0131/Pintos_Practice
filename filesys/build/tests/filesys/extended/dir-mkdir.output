@@ -23,9 +23,9 @@ Executing 'dir-mkdir':
 dir-mkdir: exit(0)
 Execution of 'dir-mkdir' complete.
 Timer: 107 ticks
-Thread: 46 idle ticks, 57 kernel ticks, 4 user ticks
+Thread: 51 idle ticks, 54 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 304 reads, 604 writes
+hd0:1: 304 reads, 609 writes
 hd1:0: 224 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1085 characters output

@@ -20,9 +20,9 @@ Executing 'exec-once':
 exec-once: exit(81)
 Execution of 'exec-once' complete.
 Timer: 119 ticks
-Thread: 58 idle ticks, 59 kernel ticks, 2 user ticks
+Thread: 58 idle ticks, 59 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 510 reads, 1052 writes
+hd0:1: 510 reads, 1055 writes
 hd1:0: 204 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1047 characters output

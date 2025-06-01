@@ -8,14 +8,14 @@ userprog/syscall.o: ../../userprog/syscall.c \
  ../../include/threads/synch.h ../../include/filesys/file.h \
  ../../include/filesys/off_t.h ../../include/filesys/inode.h \
  ../../include/devices/disk.h ../../include/lib/inttypes.h \
- ../../include/vm/vm.h ../../include/threads/palloc.h \
- ../../include/vm/uninit.h ../../include/vm/anon.h \
- ../../include/vm/file.h ../../include/lib/kernel/hash.h \
- ../../include/lib/kernel/list.h ../../include/filesys/page_cache.h \
- ../../include/lib/kernel/hash.h ../../include/lib/kernel/bitmap.h \
- ../../include/filesys/directory.h ../../include/threads/loader.h \
+ ../../include/filesys/fat.h ../../include/vm/vm.h \
+ ../../include/threads/palloc.h ../../include/vm/uninit.h \
+ ../../include/vm/anon.h ../../include/vm/file.h \
+ ../../include/lib/kernel/hash.h ../../include/lib/kernel/list.h \
+ ../../include/filesys/page_cache.h ../../include/lib/kernel/hash.h \
+ ../../include/lib/kernel/bitmap.h ../../include/filesys/directory.h \
+ ../../include/filesys/symlink.h ../../include/threads/loader.h \
  ../../include/userprog/gdt.h ../../include/threads/flags.h \
  ../../include/intrinsic.h ../../include/threads/mmu.h \
  ../../include/threads/pte.h ../../include/threads/vaddr.h \
- ../../include/userprog/process.h ../../include/filesys/filesys.h \
- ../../include/filesys/fat.h
+ ../../include/userprog/process.h ../../include/filesys/filesys.h

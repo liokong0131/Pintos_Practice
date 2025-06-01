@@ -25,9 +25,9 @@ Executing 'alarm-priority':
 (alarm-priority) end
 Execution of 'alarm-priority' complete.
 Timer: 597 ticks
-Thread: 537 idle ticks, 60 kernel ticks, 0 user ticks
+Thread: 540 idle ticks, 57 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 353 reads, 636 writes
+hd0:1: 353 reads, 637 writes
 hd1:1: 0 reads, 0 writes
 Console: 1255 characters output
 Keyboard: 0 keys pressed
