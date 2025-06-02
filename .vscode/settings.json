@@ -29,6 +29,9 @@
         "fat.h": "c",
         "directory.h": "c",
         "inode.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "stdbool.h": "c",
+        "gdt.h": "c",
+        "off_t.h": "c"
     }
 }

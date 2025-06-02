@@ -284,7 +284,12 @@ thread_current (void) {
 	   have overflowed its stack.  Each thread has less than 4 kB
 	   of stack, so a few big automatic arrays or moderate
 	   recursion can cause stack overflow. */
-	ASSERT (is_thread (t));
+
+#ifdef DEBUG
+	if(t == NULL) printf("thread is NULL\n");
+	if(t->magic != THREAD_MAGIC) printf("%s thread is polluted\n", t->name);
+#endif
+	ASSERT (is_thread (t)); 
 	ASSERT (t->status == THREAD_RUNNING);
 
 	return t;
@@ -489,6 +494,7 @@ init_thread (struct thread *t, const char *name, int priority) {
 	sema_init(&t->fork_sema, 0);
 	sema_init(&t->wait_sema, 0);
 	sema_init(&t->exit_sema, 0);
+	sema_init(&t->exec_sema, 0);
 	t->exit_status = 0;
 	list_init(&t->child_list);
 	t->is_process = false;
@@ -498,6 +504,7 @@ init_thread (struct thread *t, const char *name, int priority) {
 #ifdef VM
 	t->swap_lock = &swap_lock;
 #endif
+
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should

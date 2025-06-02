@@ -2,6 +2,7 @@
 #include <debug.h>
 #include "filesys/inode.h"
 #include "threads/malloc.h"
+#include "threads/vaddr.h"
 
 /* An open file. */
 struct file {
@@ -158,4 +159,10 @@ off_t
 file_tell (struct file *file) {
 	ASSERT (file != NULL);
 	return file->pos;
+}
+
+// my implement functions
+bool
+file_create (disk_sector_t sector, off_t initial_size) {
+	return inode_create (sector, initial_size, FILE_INODE);
 }

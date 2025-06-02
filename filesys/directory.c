@@ -5,7 +5,7 @@
 #include "filesys/filesys.h"
 #include "filesys/inode.h"
 #include "threads/malloc.h"
-
+#include "filesys/symlink.h"
 /* A directory. */
 struct dir {
 	struct inode *inode;                /* Backing store. */
@@ -19,13 +19,6 @@ struct dir_entry {
 	bool in_use;                        /* In use or free? */
 };
 
-/* Creates a directory with space for ENTRY_CNT entries in the
- * given SECTOR.  Returns true if successful, false on failure. */
-bool
-dir_create (disk_sector_t sector, size_t entry_cnt) {
-	return inode_create (sector, entry_cnt * sizeof (struct dir_entry));
-}
-
 /* Opens and returns the directory for the given INODE, of which
  * it takes ownership.  Returns a null pointer on failure. */
 struct dir *
@@ -33,7 +26,7 @@ dir_open (struct inode *inode) {
 	struct dir *dir = calloc (1, sizeof *dir);
 	if (inode != NULL && dir != NULL) {
 		dir->inode = inode;
-		dir->pos = 0;
+		dir->pos = sizeof(struct dir_entry) * 2;
 		return dir;
 	} else {
 		inode_close (inode);
@@ -46,7 +39,7 @@ dir_open (struct inode *inode) {
  * Return true if successful, false on failure. */
 struct dir *
 dir_open_root (void) {
-	return dir_open (inode_open (ROOT_DIR_SECTOR));
+	return dir_open (inode_open (cluster_to_sector(ROOT_DIR_CLUSTER)));
 }
 
 /* Opens and returns a new directory for the same inode as DIR.
@@ -63,6 +56,23 @@ dir_close (struct dir *dir) {
 		inode_close (dir->inode);
 		free (dir);
 	}
+}
+
+/* Creates a directory with space for ENTRY_CNT entries in the
+ * given SECTOR.  Returns true if successful, false on failure. */
+bool
+ dir_create (disk_sector_t sector, size_t entry_cnt, struct dir *parent_dir) {
+	if(!inode_create (sector, entry_cnt * sizeof (struct dir_entry), DIR_INODE))
+		return false;
+	struct dir *dir = dir_open(inode_open(sector));
+	if(parent_dir == NULL){
+		parent_dir = dir;
+	}
+	if(!dir_add_myself(dir)) return false;
+	if(!dir_add_parent(dir, parent_dir)) return false;
+	dir->pos = sizeof(struct dir_entry) * 2;
+	dir_close(dir);
+	return true;
 }
 
 /* Returns the inode encapsulated by DIR. */
@@ -131,15 +141,14 @@ dir_add (struct dir *dir, const char *name, disk_sector_t inode_sector) {
 
 	ASSERT (dir != NULL);
 	ASSERT (name != NULL);
-
 	/* Check NAME for validity. */
 	if (*name == '\0' || strlen (name) > NAME_MAX)
 		return false;
-
+	
 	/* Check that NAME is not in use. */
 	if (lookup (dir, name, NULL, NULL))
 		goto done;
-
+	
 	/* Set OFS to offset of free slot.
 	 * If there are no free slots, then it will be set to the
 	 * current end-of-file.
@@ -152,13 +161,13 @@ dir_add (struct dir *dir, const char *name, disk_sector_t inode_sector) {
 		if (!e.in_use)
 			break;
 	}
-
+	
 	/* Write slot. */
 	e.in_use = true;
 	strlcpy (e.name, name, sizeof e.name);
 	e.inode_sector = inode_sector;
 	success = inode_write_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
-
+	//dir_entry_count_used(dir);
 done:
 	return success;
 }
@@ -184,6 +193,17 @@ dir_remove (struct dir *dir, const char *name) {
 	inode = inode_open (e.inode_sector);
 	if (inode == NULL)
 		goto done;
+
+	if(inode_get_type(inode) == DIR_INODE){
+		struct dir *targetDir = dir_open(inode);
+		if(targetDir == NULL){
+			return false;
+		}
+		if(dir_entry_count_used(targetDir) != 2){
+			dir_close(targetDir);
+			return false;
+		}
+	}
 
 	/* Erase directory entry. */
 	e.in_use = false;
@@ -231,42 +251,97 @@ dir_add_parent(struct dir *dir, struct dir *parent_dir){
 }
 
 void
-directory_tokenize(const char *dir, int *argc, char *argv[]){
+directory_tokenize(char *dir, int *argc, char *argv[]){
 	char *token, *save_ptr;
 	int i = 0;
-	for(token = strtok_r(dir, "/", &save_ptr); token != NULL; token = strtok_r(NULL, "/", &save_ptr)){
+	for(token = strtok_r(dir, "/", &save_ptr); token != NULL;
+		token = strtok_r(NULL, "/", &save_ptr)){
 		argv[i++] = token;
 	}
 	*argc = i;
 }
 
 bool
-change_directory(const char *dir, int argc, char *argv[], struct dir** dirp, off_t ofs){
-	struct dir *curDir = (dir[0] == '/') ? dir_open_root() : dir_reopen(*dirp);
+change_directory(const char *path, int argc, char *argv[], struct dir *dir, struct dir **new_dirp, int ofs){
+	struct dir *curDir = (path[0] == '/') ? dir_open_root() : dir_reopen(dir);
 	struct inode *inode = NULL;
 	if(argc == 0){
+		if(ofs >= 1) goto error;
 		dir_close(curDir);
-		if(ofs >= 1) return false;
-
-		*dirp = dir_open_root();
+		*new_dirp = dir_open_root();
 		return true;
 	}
 
 	for(int i=0; i<argc-ofs; i++){
 		if(dir_lookup(curDir, argv[i], &inode)){
+			struct inode *ninode = NULL;
+			switch (inode_get_type(inode)){
+			case FILE_INODE:
+				inode_close(inode);
+				goto error;
+			case DIR_INODE:break;
+			case SYMLINK_INODE:{
+				struct symlink *symlink = symlink_open(inode);
+				struct dir *new_dir = NULL;
+				ninode = symlink_solve(symlink, curDir, &new_dir);
+				if(ninode == NULL){
+					symlink_close(symlink);
+					inode = NULL;
+					goto error;
+				}
+				dir_close(curDir);
+				curDir = new_dir;
+				symlink_close(symlink);
+				switch (inode_get_type(ninode)){
+				case FILE_INODE:
+					goto error;
+				case DIR_INODE:break;
+				case SYMLINK_INODE:
+				default:
+					goto error;
+				}
+				inode = ninode;
+				break;
+			}default:
+				goto error;
+			}
 			struct dir *nextDir = dir_open(inode);
 			if(nextDir == NULL){
-				dir_close(curDir);
-				return false;
+				goto error;
 			}
 			dir_close(curDir);
 			curDir = nextDir;
 		} else{
-			dir_close(curDir);
-			return false;
+			goto error;
 		}
 	}
-	dir_close(*dirp);
-	*dirp = curDir;
+	*new_dirp = curDir;
 	return true;
+
+error:
+	dir_close(curDir);
+	return false;
+}
+
+size_t
+dir_entry_count_used(struct dir *dir) {
+    struct dir_entry e;
+    size_t count = 0;
+    for (off_t ofs = 0; inode_read_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
+			ofs += sizeof e){
+		if (e.in_use){
+			//printf("%s, %d\n", e.name, e.inode_sector);
+			count++;
+		}
+	}
+    return count;
+}
+
+struct dir *
+dir_duplicate (struct dir *dir) {
+	struct dir *ndir = dir_reopen(dir);
+	if (ndir) {
+		ndir->pos = dir->pos;
+	}
+	return ndir;
 }

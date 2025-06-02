@@ -3,6 +3,7 @@
 
 #define USERPROG
 #define VM
+#define EFILESYS
 //#define DEBUG
 
 #include <debug.h>
@@ -27,6 +28,7 @@
 
 #ifdef EFILESYS
 #include "filesys/inode.h"
+#include "filesys/directory.h"
 #endif
 
 struct dir;
@@ -125,16 +127,17 @@ struct thread {
 	struct semaphore fork_sema;
 	struct semaphore wait_sema;
 	struct semaphore exit_sema;
+	struct semaphore exec_sema;
 	struct list_elem child_elem;
 	struct list child_list;
 	int exit_status;
-	struct file **fdt;
+	void **fdt;
 	int fdt_cur;
 	int num_files;
 	bool is_process;
 	struct intr_frame parent_if;
 	struct file *running_file;
-	struct lock* filesys_lock;
+	struct lock *filesys_lock;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -146,12 +149,8 @@ struct thread {
 
 #ifdef EFILESYS
 	struct dir *cwd;
+	bool *fdt_dirbit_vec;
 #endif
-
-	/* Owned by thread.c. */
-	struct intr_frame tf;               /* Information for switching */
-	unsigned magic;                     /* Detects stack overflow. */
-
 	// implement for alarm clock
 	int64_t wake_up_tick;               /* Wake up tick for alarm clock */
 
@@ -165,6 +164,10 @@ struct thread {
 	int recent_cpu_time;
 	int nice;
 	struct list_elem all_elem;
+
+	/* Owned by thread.c. */
+	struct intr_frame tf;               /* Information for switching */
+	unsigned magic;                     /* Detects stack overflow. */
 };
 
 /* If false (default), use round-robin scheduler.

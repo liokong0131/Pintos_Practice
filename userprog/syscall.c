@@ -18,14 +18,20 @@
 #include "filesys/directory.h"
 #include "filesys/inode.h"
 #include "filesys/fat.h"
+
+#define CREATE_LIMIT 512
+
 enum syscall_status {
 	READ,
-	WRITE,     
+	WRITE,
+	DIR,
+	FILE,
 	OTHERS
 };
 
 typedef int pid_t;
 
+int insert_to_fdt(struct open_info *file);
 void check_valid_uaddr(const uint64_t *addr);
 bool is_valid_fd(int fd, enum syscall_status stat);
 bool is_valid_uaddr(const uint64_t *addr, size_t length);
@@ -33,7 +39,6 @@ void check_writable_addr(const uint64_t *addr, unsigned length);
 bool is_overlap(const uint64_t *addr, size_t length);
 bool is_valid_offset(off_t offset);
 bool is_writable_addr(const uint64_t *addr, unsigned length);
-bool is_file_exist(struct dir *dir, const char *fn);
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
@@ -65,6 +70,7 @@ bool mkdir(const char *dir);
 bool readdir (int fd, char *name);
 bool isdir (int fd);
 int inumber (int fd);
+int symlink (const char *target, const char *linkpath);
 
 /* System call.
  *
@@ -78,6 +84,8 @@ int inumber (int fd);
 #define MSR_STAR 0xc0000081         /* Segment selector msr */
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
+
+static int create_count = 0;
 
 void
 syscall_init (void) {
@@ -177,7 +185,13 @@ syscall_handler (struct intr_frame *if_) {
 	case SYS_INUMBER:
 		if_->R.rax = inumber(if_->R.rdi);
 		break;
+	case SYS_SYMLINK:
+		if_->R.rax = symlink(if_->R.rdi, if_->R.rsi);
+		break;
 	default:
+#ifdef DEBUG
+		printf("wrong syscall number\n");
+#endif
 		exit(-1); break;
 	}
 }
@@ -196,14 +210,14 @@ int exec (const char *cmd_line){
 	check_valid_uaddr(cmd_line);
 
 	char *fn_copy;
-	if((fn_copy = palloc_get_page(0)) == NULL){
+	if((fn_copy = palloc_get_page(PAL_ZERO)) == NULL){
 #ifdef DEBUG
 		printf("exec fn_copy NULL\n");
 #endif
 		exit(-1);
 	}
 	strlcpy(fn_copy, cmd_line, PGSIZE);
-
+	struct inode *inode = NULL;
 	return process_exec(fn_copy);
 }
 int wait (pid_t pid){
@@ -212,30 +226,17 @@ int wait (pid_t pid){
 
 bool create (const char *file, unsigned initial_size){
 	check_valid_uaddr(file);
+	if(create_count > CREATE_LIMIT){
+		return false;
+	}
 	lock_acquire(thread_current()->filesys_lock);
-	bool success = filesys_create(file, initial_size);
+	bool success = filesys_create(file, initial_size, FILE_INODE, NULL);
+	create_count++;
 	lock_release(thread_current()->filesys_lock);
 	return success;
 }
 bool remove (const char *file){
 	check_valid_uaddr(file);
-
-	struct dir *curDir = dir_reopen(thread_current()->cwd);
-	int argc = 0;
-	char *argv[128];
-	char *file_name;
-	directory_tokenize(file, &argc, argv);
-	if(argc == 0){
-		dir_close(curDir);
-		return false;
-	}
-	file_name = argv[argc-1];
-	change_directory(file, argc, argv, &curDir, 1);
-	if(is_file_exist(curDir, file_name)){
-		dir_close(curDir);
-		return false;
-	}
-
 	lock_acquire(thread_current()->filesys_lock);
 	bool success = filesys_remove(file);
 	lock_release(thread_current()->filesys_lock);
@@ -244,16 +245,22 @@ bool remove (const char *file){
 int open (const char *file){
 	check_valid_uaddr(file);
 	int fd;
-	struct file *open_file;
+	struct open_info *o_info;
 	lock_acquire(thread_current()->filesys_lock);
-	if((open_file = filesys_open(file)) == NULL){
+	if((o_info = filesys_open(file)) == NULL){
 		lock_release(thread_current()->filesys_lock);
 		return -1;
 	}
-		
-	if ((fd = insert_file_to_fdt(open_file)) == -1)
-		file_close(open_file);
+	if ((fd = insert_to_fdt(o_info)) == -1){
+		if(o_info->is_dir){
+			dir_close(o_info->obj);
+		} else{
+			file_close(o_info->obj);
+		}
+	}
+	
 	lock_release(thread_current()->filesys_lock);
+	free(o_info);
 	return fd;
 }
 int filesize (int fd){
@@ -269,7 +276,9 @@ int filesize (int fd){
 int read (int fd, void *buffer, unsigned length){
 	check_valid_uaddr(buffer);
 	check_writable_addr(buffer, length);
-	if(!is_valid_fd (fd, READ)) return -1;
+	if(!is_valid_fd(fd, FILE) && !is_valid_fd (fd, READ)){
+		return -1;
+	}
 	
 	struct thread *curThread = thread_current ();
 	
@@ -288,8 +297,9 @@ int read (int fd, void *buffer, unsigned length){
 }
 int write (int fd, const void *buffer, unsigned length){
 	check_valid_uaddr(buffer);
-	if(!is_valid_fd (fd, WRITE)) return -1;
-
+	if(!is_valid_fd(fd, FILE) && !is_valid_fd (fd, WRITE)){
+		return -1;
+	}
 	struct thread *curThread = thread_current ();
 	if(fd == 1){
 		putbuf(buffer, length);
@@ -303,8 +313,8 @@ int write (int fd, const void *buffer, unsigned length){
 	}
 }
 void seek (int fd, unsigned position){
+	if(!is_valid_fd (fd, FILE)) return;
 	struct thread *curThread = thread_current ();
-	if(!is_valid_fd (fd, OTHERS)) return;
 	struct file *file = curThread->fdt[fd];
 	lock_acquire(thread_current()->filesys_lock);
 	file_seek(file, position);
@@ -312,8 +322,8 @@ void seek (int fd, unsigned position){
 	lock_release(thread_current()->filesys_lock);
 }	
 unsigned tell (int fd){
+	if(!is_valid_fd (fd, FILE)) return;
 	struct thread *curThread = thread_current ();
-	if(!is_valid_fd (fd, OTHERS)) return;
 	struct file *file = curThread->fdt[fd];
 	lock_acquire(thread_current()->filesys_lock);
 	off_t result = file_tell(file);
@@ -321,14 +331,17 @@ unsigned tell (int fd){
 	return result;
 }
 void close (int fd){
-	struct thread *curThread = thread_current ();
 	if(!is_valid_fd (fd, OTHERS)) return;
-	struct file *file = curThread->fdt[fd];
+	struct thread *curThread = thread_current ();
 	lock_acquire(thread_current()->filesys_lock);
-	file_close(file);
+	if(curThread->fdt_dirbit_vec[fd]){
+		dir_close(curThread->fdt[fd]);
+	} else {
+		file_close(curThread->fdt[fd]);
+	}
 	lock_release(thread_current()->filesys_lock);
 	curThread->fdt[fd] = NULL;
-	curThread->fdt_cur = fd;
+	curThread->fdt_cur = fd < curThread->fdt_cur ? fd : curThread->fdt_cur;
 	curThread->num_files--;
 }
 
@@ -353,107 +366,91 @@ void munmap(void *addr){
 }
 
 bool chdir(const char *dir){
-	struct dir *curDir = dir_reopen(thread_current()->cwd);
-	struct inode *inode = NULL;
-	int argc = 0;
-	char *argv[128];
-	directory_tokenize(dir, &argc, argv);
-
-	if(argc == 0){
-		dir_close(thread_current()->cwd);
-		thread_current()->cwd = dir_open_root();
+	char *dir_copy = palloc_get_page(PAL_ZERO);
+	if(dir_copy == NULL){
+		return false;
 	}
+	strlcpy(dir_copy, dir, PGSIZE);
 
-	for(int i=0; i<argc; i++){
-		if(dir_lookup(curDir, argv[i], &inode)){
-			struct dir *nextDir = dir_open(inode);
-			if(nextDir == NULL){
-				dir_close(curDir);
-				return false;
-			}
+	struct dir *curDir = dir_reopen(thread_current()->cwd);
+	int argc = 0;
+	char *argv[32];
+	char *file_name;
+	directory_tokenize(dir_copy, &argc, argv);
+	if(argc == 0){
+		dir_close(curDir);
+		curDir = dir_open_root();
+	} else{
+		file_name = argv[argc-1];
+		struct dir *new_dir = NULL;
+		if(!change_directory(dir, argc, argv, curDir, &new_dir, 0)){
+			palloc_free_page(dir_copy);
 			dir_close(curDir);
-			curDir = nextDir;
-		} else{
-			dir_close(curDir);
+			dir_close(new_dir);
 			return false;
 		}
+		dir_close(curDir);
+		curDir = new_dir;
 	}
-
+	
+	palloc_free_page(dir_copy);
 	dir_close(thread_current()->cwd);
 	thread_current()->cwd = curDir;
 	return true;
 }
 
 bool mkdir(const char *dir){
-	struct dir *curDir = dir_reopen(thread_current()->cwd);
-	struct inode *inode = NULL;
-	int argc = 0;
-	char *argv[128];
-	directory_tokenize(dir, &argc, argv);
-
-	if(argc == 0 || !strcmp(argv[argc-1], ".")||
-	   !strcmp(argv[argc-1], "..") || strlen(argv[argc-1]) > NAME_MAX){
-		dir_close(curDir);
+	check_valid_uaddr(dir);
+	if(create_count > CREATE_LIMIT){
 		return false;
 	}
-
-	for(int i=0; i<argc-1; i++){
-		if(dir_lookup(curDir, argv[i], &inode)){
-			struct dir *nextDir = dir_open(inode);
-			if(nextDir == NULL){
-				dir_close(curDir);
-				return false;
-			}
-			dir_close(curDir);
-			curDir = nextDir;
-		} else{
-			dir_close(curDir);
-			return false;
-		}
-	}
-
-	if(dir_lookup(curDir, argv[argc-1], &inode)){
-		inode_close(inode);
-		dir_close(curDir);
-		return false;
-	} 
-
-	cluster_t clst = fat_create_chain(0);
-	if(	clst == 0
-	   || !inode_create(cluster_to_sector(clst), DISK_SECTOR_SIZE)
-	   || !dir_create(cluster_to_sector(clst), DEFAULT_ENTRY_CNT)
-	   || !dir_add(curDir, argv[argc-1], cluster_to_sector(clst))
-	   || !dir_lookup(curDir, argv[argc-1], &inode)){
-		dir_close(curDir);
-		return false;
-	} 
-
-	struct dir *newDir = dir_open(inode);
-	if(newDir == NULL){
-		dir_close(curDir);
-		return false;
-	}
-	dir_add_myself(newDir);
-	dir_add_parent(newDir, curDir);
-	dir_close(newDir);
-	dir_close(curDir);
-	return true;
+	lock_acquire(thread_current()->filesys_lock);
+	bool success = filesys_create(dir, DEFAULT_ENTRY_CNT, DIR_INODE, NULL);
+	create_count++;
+	lock_release(thread_current()->filesys_lock);
+	return success;
 }
 
 bool readdir (int fd, char *name){
-
+	if(!is_valid_fd(fd, DIR)) return false;
+	//if(!is_valid_file_name(name)) return false;
+	struct thread *curThread = thread_current();
+	struct dir* dir = curThread->fdt[fd];
+	if(is_inode_removed(dir_get_inode(dir))) return false;
+	return dir_readdir(dir, name);
 }
 
 bool isdir (int fd){
-
+	if(!is_valid_fd(fd, OTHERS)) return false;
+	return thread_current()->fdt_dirbit_vec[fd];
 }
 
 int inumber (int fd){
+	if(!is_valid_fd(fd, OTHERS)) return false;
+	struct thread *curThread = thread_current();
+	struct inode *inode = NULL;
+	if(curThread->fdt_dirbit_vec[fd]){
+		struct dir *dir = curThread->fdt[fd];
+		inode = dir_get_inode(dir);
+	}else{
+		struct file *file = curThread->fdt[fd];
+		inode = file_get_inode(file);
+	}
+	return inode_get_inumber(inode);
+}
 
+int symlink (const char *target, const char *linkpath){
+	check_valid_uaddr(target);
+	check_valid_uaddr(linkpath);
+	lock_acquire(thread_current()->filesys_lock);
+	bool success = filesys_create(linkpath, strlen(target) + 1, SYMLINK_INODE, target);
+	lock_release(thread_current()->filesys_lock);
+	if(success) return 0;
+	else		return -1;
 }
 
 int
-insert_file_to_fdt(struct file *file){
+insert_to_fdt(struct open_info *o_info){
 	struct thread *curThread = thread_current ();
 
 	while(curThread->fdt_cur < FDT_LIMIT && curThread->fdt[curThread->fdt_cur] != NULL){
@@ -464,7 +461,8 @@ insert_file_to_fdt(struct file *file){
 		return -1;
 	}
 
-	curThread->fdt[curThread->fdt_cur] = file;
+	curThread->fdt[curThread->fdt_cur] = o_info->obj;
+	curThread->fdt_dirbit_vec[curThread->fdt_cur] = o_info->is_dir;
 	curThread->num_files++;
   	return curThread->fdt_cur;
 }
@@ -506,11 +504,16 @@ is_valid_offset(off_t offset){
 bool
 is_valid_fd(int fd, enum syscall_status stat){
 	struct thread *curThread = thread_current ();
-	if(2 <= fd && fd <= FDT_LIMIT && curThread->fdt[fd] != NULL)
-		return true;
+	if(2 <= fd && fd <= FDT_LIMIT && curThread->fdt[fd] != NULL){
+		if (stat == OTHERS) return true;
+		if((stat == DIR && curThread->fdt_dirbit_vec[fd])
+			|| (stat == FILE && !curThread->fdt_dirbit_vec[fd]))
+			return true;
+	}
 	else if (stat == WRITE && fd == 1) return true;
 	else if (stat == READ && fd == 0 ) return true;
-	else return false;
+	
+	return false;
 }
 
 void
@@ -570,16 +573,6 @@ is_overlap(const uint64_t *addr, size_t length){
 #endif
 			return true;
 		}
-	}
-	return false;
-}
-
-bool
-is_file_exist(struct dir *dir, const char *fn){
-	struct inode *inode = NULL;
-	if(dir_lookup(dir, fn, &inode)){
-		inode_close(inode);
-		return true;
 	}
 	return false;
 }

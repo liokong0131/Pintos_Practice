@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 377 sector (188 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 228 sector (114 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
@@ -38,9 +38,9 @@ Executing 'symlink-link':
 symlink-link: exit(0)
 Execution of 'symlink-link' complete.
 Timer: 137 ticks
-Thread: 66 idle ticks, 52 kernel ticks, 20 user ticks
+Thread: 71 idle ticks, 51 kernel ticks, 15 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 1025 reads, 794 writes
+hd0:1: 1025 reads, 803 writes
 hd1:0: 228 reads, 0 writes
 hd1:1: 0 reads, 0 writes
 Console: 1734 characters output

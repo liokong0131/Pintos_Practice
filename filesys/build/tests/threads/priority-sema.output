@@ -5,7 +5,7 @@ Pintos booting with:
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
 Calibrating timer...  209,510,400 loops/s.
-hd0:0: detected 369 sector (184 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:0: detected 377 sector (188 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:1: detected 8,064 sector (3 MB) disk, model "QEMU HARDDISK", serial "QM00004"
 Formatting file system...done.
@@ -34,10 +34,10 @@ Executing 'priority-sema':
 (priority-sema) Back in main thread.
 (priority-sema) end
 Execution of 'priority-sema' complete.
-Timer: 98 ticks
-Thread: 46 idle ticks, 53 kernel ticks, 0 user ticks
+Timer: 99 ticks
+Thread: 52 idle ticks, 47 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 353 reads, 637 writes
+hd0:1: 353 reads, 636 writes
 hd1:1: 0 reads, 0 writes
 Console: 1608 characters output
 Keyboard: 0 keys pressed

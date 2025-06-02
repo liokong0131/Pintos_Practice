@@ -32,11 +32,14 @@ void
 fsutil_cat (char **argv) {
 	const char *file_name = argv[1];
 
+	struct open_info *o_info;
 	struct file *file;
 	char *buffer;
 
 	printf ("Printing '%s' to the console...\n", file_name);
-	file = filesys_open (file_name);
+	o_info = filesys_open (file_name);
+	file = (struct file*)o_info->obj;
+	free(o_info);
 	if (file == NULL)
 		PANIC ("%s: open failed", file_name);
 	buffer = palloc_get_page (PAL_ASSERT);
@@ -80,6 +83,7 @@ fsutil_put (char **argv) {
 
 	const char *file_name = argv[1];
 	struct disk *src;
+	struct open_info *o_info;
 	struct file *dst;
 	off_t size;
 	void *buffer;
@@ -105,9 +109,11 @@ fsutil_put (char **argv) {
 		PANIC ("%s: invalid file size %d", file_name, size);
 
 	/* Create destination file. */
-	if (!filesys_create (file_name, size))
+	if (!filesys_create (file_name, size, FILE_INODE, NULL))
 		PANIC ("%s: create failed", file_name);
-	dst = filesys_open (file_name);
+	o_info = filesys_open (file_name);
+	dst = (struct file *)o_info->obj;
+	free(o_info);
 	if (dst == NULL)
 		PANIC ("%s: open failed", file_name);
 
@@ -143,6 +149,7 @@ fsutil_get (char **argv) {
 
 	const char *file_name = argv[1];
 	void *buffer;
+	struct open_info *o_info;
 	struct file *src;
 	struct disk *dst;
 	off_t size;
@@ -155,7 +162,9 @@ fsutil_get (char **argv) {
 		PANIC ("couldn't allocate buffer");
 
 	/* Open source file. */
-	src = filesys_open (file_name);
+	o_info = filesys_open (file_name);
+	src = (struct file*)o_info->obj;
+	free(o_info);
 	if (src == NULL)
 		PANIC ("%s: open failed", file_name);
 	size = file_length (src);

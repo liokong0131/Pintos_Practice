@@ -37,7 +37,7 @@ process_init (void) {
 	struct thread *curThread = thread_current ();
 	curThread->is_process = true;
 
-	curThread->fdt = (struct file **) palloc_get_page(PAL_ZERO);
+	curThread->fdt = palloc_get_page(PAL_ZERO);
 	if (curThread->fdt == NULL) { 
 #ifdef DEBUG
 		printf("process_init fdt palloc failed\n");
@@ -55,6 +55,9 @@ process_init (void) {
 
 #ifdef EFILESYS
 	curThread->cwd = dir_open_root();
+	curThread->fdt_dirbit_vec = (bool *)malloc(sizeof(bool) * FDT_LIMIT);
+	curThread->fdt_dirbit_vec[0] = false;
+	curThread->fdt_dirbit_vec[1] = false;
 #endif
 }
 
@@ -77,13 +80,13 @@ process_create_initd (const char *file_name) {
 
 	// implement
 	int argc;
-	char *argv[128];
+	char *argv[32];
 	argument_tokenize(file_name, &argc, argv);
 	/* Create a new thread to execute FILE_NAME. */
 	tid = thread_create (argv[0], PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
 		palloc_free_page (fn_copy);
-
+	
 	struct thread* child = get_thread(tid);
 	list_push_back(&thread_current()->child_list, &child->child_elem);
 	
@@ -201,7 +204,6 @@ __do_fork (void *aux) {
 	if (!pml4_for_each (parent->pml4, duplicate_pte, parent))
 		goto error;
 #endif
-
 	/* TODO: Your code goes here.
 	 * TODO: Hint) To duplicate the file object, use `file_duplicate`
 	 * TODO:       in include/filesys/file.h. Note that parent should not return
@@ -209,7 +211,10 @@ __do_fork (void *aux) {
 	 * TODO:       the resources of parent.*/
 
 	process_init ();
-
+#ifdef EFILESYS
+	dir_close(curThread->cwd);
+	curThread->cwd = dir_reopen(parent->cwd);
+#endif
 	// if (parent->running_file != NULL){
 	// 	curThread->running_file = file_duplicate(parent->running_file);
 	// 	//file_deny_write(curThread->fdt[fdt_idx]);
@@ -218,9 +223,13 @@ __do_fork (void *aux) {
 	int fdt_idx = 2;
 	while(fdt_idx < FDT_LIMIT){
 		if(parent->fdt[fdt_idx] != NULL){
-			curThread->fdt[fdt_idx] = file_duplicate(parent->fdt[fdt_idx]);
-			// if(curThread->fdt[fdt_idx] != NULL)
-			// 	file_deny_write(curThread->fdt[fdt_idx]);
+			if(parent->fdt_dirbit_vec[fdt_idx]){
+				curThread->fdt[fdt_idx] = dir_duplicate(parent->fdt[fdt_idx]);
+				curThread->fdt_dirbit_vec[fdt_idx] = true;
+			} else{
+				curThread->fdt[fdt_idx] = file_duplicate(parent->fdt[fdt_idx]);
+				curThread->fdt_dirbit_vec[fdt_idx] = false;
+			}
 			file_cnt++;
 		}
 		if (parent->num_files <= file_cnt) break;
@@ -232,7 +241,7 @@ __do_fork (void *aux) {
 	if_.R.rax = 0;
 
 	sema_up(&curThread->fork_sema);
-
+	sema_down(&curThread->exec_sema);
 	/* Finally, switch to the newly created process. */
 	do_iret (&if_);
 error:
@@ -299,6 +308,7 @@ process_wait (tid_t child_tid) {
 	if (child == NULL)
 		return -1;
 
+	sema_up(&child->exec_sema);
 	sema_down(&child->wait_sema);
 
 	int child_status = child->exit_status;
@@ -317,7 +327,7 @@ process_exit (void) {
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
+	
 	if(curThread->is_process){
 		printf ("%s: exit(%d)\n", curThread->name, curThread->exit_status);
 		if (curThread->fdt != NULL){
@@ -325,6 +335,18 @@ process_exit (void) {
 			int fdt_idx = 2;
 			while(fdt_idx <= FDT_LIMIT){
 				if(curThread->fdt[fdt_idx] != NULL){
+#ifdef EFILESYS
+					if(curThread->fdt_dirbit_vec[fdt_idx]){
+						dir_close(curThread->fdt[fdt_idx]);
+						file_cnt++;
+						if(curThread->num_files <= file_cnt){
+							break;
+						} else{
+							fdt_idx++;
+							continue;
+						}
+					}
+#endif
 					file_close(curThread->fdt[fdt_idx]);
 					file_cnt++;
 				}
@@ -333,7 +355,7 @@ process_exit (void) {
 			}
 			palloc_free_page(curThread->fdt);
 		}
-
+		
 		if(!list_empty(&curThread->child_list)){
 			struct list_elem *iter;
 			for(iter = list_begin(&curThread->child_list); iter != list_end(&curThread->child_list); iter = list_next(iter)){
@@ -345,11 +367,13 @@ process_exit (void) {
 
 		file_close(curThread->running_file);
 	}
-
+#ifdef EFILESYS
+	dir_close(curThread->cwd);
+	free(curThread->fdt_dirbit_vec);
+#endif
 	process_cleanup ();
 	sema_up(&curThread->wait_sema);
 	sema_down(&curThread->exit_sema);
-	//thread_exit();
 }
 
 /* Free the current process's resources. */
@@ -458,6 +482,7 @@ static bool
 load (const char *file_name, struct intr_frame *if_) {
 	struct thread *curThread = thread_current ();
 	struct ELF ehdr;
+	struct open_info *o_info = NULL;
 	struct file *file = NULL;
 	off_t file_ofs;
 	bool success = false;
@@ -465,7 +490,7 @@ load (const char *file_name, struct intr_frame *if_) {
 	
 	//implement for argument passing
 	int argc;
-	char *argv[128];
+	char *argv[32];
 	argument_tokenize(file_name, &argc, argv);
 
 	/* Allocate and activate page directory. */
@@ -477,11 +502,12 @@ load (const char *file_name, struct intr_frame *if_) {
 	/* Open executable file. */
 	//implement
 	lock_acquire(curThread->filesys_lock);
-	if ((file = filesys_open (argv[0])) == NULL) {
+	if ((o_info = (struct open_info *)filesys_open (argv[0])) == NULL) {
 		printf ("load: %s: open failed\n", argv[0]);
 		goto done;
 	}
 	
+	file = (struct file *) o_info->obj;
 	curThread->running_file = file;
 	file_deny_write(curThread->running_file);
 	/* Read and verify executable header. */
@@ -566,6 +592,7 @@ load (const char *file_name, struct intr_frame *if_) {
 done:
 	/* We arrive here whether the load is successful or not. */
 	// file_close (file);
+	free(o_info);
 	lock_release(curThread->filesys_lock);
 	return success;
 }
@@ -826,7 +853,7 @@ argument_tokenize(char *fn, int *argc, char *argv[]){
 }
 void
 argument_insert(int argc, char *argv[], struct intr_frame *if_){
-	char *arg_addr[128];
+	char *arg_addr[32];
 
 	//printf("rsp : %p\n", if_->rsp);
 
@@ -862,6 +889,7 @@ argument_insert(int argc, char *argv[], struct intr_frame *if_){
 struct thread *
 get_child_process(tid_t child_tid){
 	struct thread *curThread = thread_current();
+	
 	struct list_elem *iter;
 	for(iter = list_begin(&curThread->child_list); iter != list_end(&curThread->child_list); iter = list_next(iter)){
 		struct thread *t = list_entry(iter, struct thread, child_elem);
